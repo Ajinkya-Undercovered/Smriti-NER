@@ -13,6 +13,10 @@ dist
 dist-ssr
 *.local
 
+# Presentation & Offline Documents
+*.pptx
+*.ppt
+
 # Environment variables & secrets (CRITICAL FOR GITHUB SAFETY)
 .env
 .env.*
