@@ -1,0 +1,78 @@
+﻿@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-primary: 'Plus Jakarta Sans', 'Noto Sans Bengali', 'Noto Sans', sans-serif;
+  }
+  
+  body {
+    font-family: var(--font-primary);
+    -webkit-tap-highlight-color: transparent;
+    background-color: #fef2f2;
+    color: #111827;
+  }
+}
+
+/* Google Stitch Text Size Accessibility Classes */
+.text-large {
+  font-size: 1.15rem !important;
+  line-height: 1.6 !important;
+}
+
+.text-xlarge {
+  font-size: 1.3rem !important;
+  line-height: 1.7 !important;
+}
+
+.text-large h1, .text-xlarge h1 { font-size: 2.25rem !important; }
+.text-large h2, .text-xlarge h2 { font-size: 1.75rem !important; }
+.text-large h3, .text-xlarge h3 { font-size: 1.45rem !important; }
+.text-large p, .text-xlarge p { font-size: 1.15rem !important; }
+.text-large button, .text-xlarge button { font-size: 1.1rem !important; }
+
+/* Stitch Breathing Animation for Floating Mic FAB */
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 10px 25px -5px rgba(244, 63, 94, 0.4), 0 8px 10px -6px rgba(244, 63, 94, 0.4);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 20px 35px -5px rgba(244, 63, 94, 0.6), 0 12px 16px -6px rgba(244, 63, 94, 0.5);
+  }
+}
+
+.animate-breathe {
+  animation: breathe 3s ease-in-out infinite;
+}
+
+/* Fade in transition */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Custom sound wave pulse animation */
+@keyframes wave-pulse {
+  0%, 100% {
+    height: 6px;
+  }
+  50% {
+    height: 28px;
+  }
+}
+
+.animate-wave-1 { animation: wave-pulse 1.2s ease-in-out infinite; }
+.animate-wave-2 { animation: wave-pulse 1.2s ease-in-out infinite 0.2s; }
+.animate-wave-3 { animation: wave-pulse 1.2s ease-in-out infinite 0.4s; }
+.animate-wave-4 { animation: wave-pulse 1.2s ease-in-out infinite 0.6s; }
