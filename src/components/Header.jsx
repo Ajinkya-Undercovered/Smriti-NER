@@ -3,6 +3,7 @@ import { Menu, Stethoscope, Brain, HeartPulse, Wind, Home, Volume2, UserCheck } 
 import { usePatient } from '../context/PatientContext.jsx';
 import { DualAudioToggle } from './common/DualAudioToggle.jsx';
 import { NetworkStatusBanner } from './common/NetworkStatusBanner.jsx';
+import { InstallPwaButton } from './common/InstallPwaButton.jsx';
 
 export const Header = ({ activeTab, setActiveTab, onOpenDrawer, onDoctorClick }) => {
   const { patient, t, currentUser } = usePatient();
@@ -55,8 +56,9 @@ export const Header = ({ activeTab, setActiveTab, onOpenDrawer, onDoctorClick })
           </div>
         </div>
 
-        {/* Right Controls: Network Status + Dual Audio Toggle + Action Shortcuts */}
+        {/* Right Controls: Install App + Network Status + Dual Audio + Shortcuts */}
         <div className="flex items-center gap-2">
+          <InstallPwaButton />
           <NetworkStatusBanner />
           <DualAudioToggle />
 
