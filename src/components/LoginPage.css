@@ -1,0 +1,625 @@
+/* Login page visual system. Authentication behavior remains in LoginPage.jsx. */
+main:has(> section.max-w-xl) {
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  overflow: visible;
+  padding: clamp(1.25rem, 4vw, 3.5rem) !important;
+  background: #f4f8f7 !important;
+  color: #17313a;
+}
+
+main:has(> section.max-w-xl)::before,
+main:has(> section.max-w-xl)::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  border: 1px solid rgb(35 116 122 / 0.1);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+main:has(> section.max-w-xl)::before {
+  width: 32rem;
+  height: 32rem;
+  top: -16rem;
+  right: 0;
+  background: radial-gradient(circle at center, rgb(202 231 224 / 0.5), transparent 68%);
+}
+
+main:has(> section.max-w-xl)::after {
+  width: 25rem;
+  height: 25rem;
+  bottom: -15rem;
+  left: auto;
+  right: 0;
+  background: radial-gradient(circle at center, rgb(221 235 242 / 0.5), transparent 68%);
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl {
+  position: relative;
+  width: min(100%, 34rem);
+  padding: clamp(1.5rem, 4vw, 2.75rem) !important;
+  border: 1px solid #d8e7e4 !important;
+  border-radius: 1.5rem !important;
+  background: rgb(255 255 255 / 0.94) !important;
+  box-shadow: 0 24px 70px rgb(23 63 70 / 0.13), 0 3px 10px rgb(23 63 70 / 0.05) !important;
+  animation: login-card-enter 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  scrollbar-width: thin;
+  scrollbar-color: #b5d2ce transparent;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > header {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.9rem;
+  align-items: center;
+  margin-bottom: 1.7rem !important;
+  text-align: left;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > header > div:first-child {
+  display: inline-flex;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin: 0;
+  border: 1px solid rgb(255 255 255 / 0.72);
+  border-radius: 1.1rem;
+  background: linear-gradient(145deg, #267f82, #174b57) !important;
+  box-shadow: 0 10px 22px rgb(35 116 122 / 0.22);
+  color: #fff;
+  animation: login-mark-enter 540ms 80ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > header h1 {
+  margin: 0;
+  color: #17313a !important;
+  font-size: clamp(1.4rem, 4vw, 1.85rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > header p {
+  grid-column: 1 / -1;
+  margin: 1rem 0 0;
+  color: #5c747a !important;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > header h1::before {
+  content: 'SMRITI-NER';
+  display: block;
+  margin-bottom: 0.3rem;
+  color: #23747a;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(1) {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 1.2rem !important;
+  border: 1px solid #d7e8e4 !important;
+  border-radius: 0.8rem !important;
+  background: #f0f8f6 !important;
+  color: #235d61 !important;
+  font-size: 0.73rem;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(1) svg {
+  flex: 0 0 auto;
+  color: #23747a;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(2) {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.35rem;
+  padding: 0.3rem;
+  margin-bottom: 1.5rem !important;
+  border: 1px solid #dce9e7;
+  border-radius: 0.85rem !important;
+  background: #f2f6f5 !important;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(2) button {
+  min-height: 2.7rem;
+  border: 0;
+  border-radius: 0.65rem !important;
+  background: transparent;
+  color: #6b8185 !important;
+  font-weight: 750;
+  transition: color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(2) button:hover {
+  color: #235d61 !important;
+  background: rgb(255 255 255 / 0.72);
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(2) button.bg-white {
+  color: #174b57 !important;
+  background: #fff !important;
+  box-shadow: 0 3px 10px rgb(23 63 70 / 0.1) !important;
+}
+
+main:has(> section.max-w-xl) form {
+  animation: login-form-enter 300ms ease both;
+}
+
+main:has(> section.max-w-xl) form > label,
+main:has(> section.max-w-xl) form fieldset {
+  margin-bottom: 0.95rem;
+}
+
+main:has(> section.max-w-xl) form > label > span:first-child,
+main:has(> section.max-w-xl) legend {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: #294950 !important;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+main:has(> section.max-w-xl) form > label > span:nth-child(2) {
+  min-height: 3.2rem;
+  border: 1px solid #cbdedc !important;
+  border-radius: 0.75rem !important;
+  background: #fbfdfd !important;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+main:has(> section.max-w-xl) form > label > span:nth-child(2):hover {
+  border-color: #8dbbb5 !important;
+  background: #fff !important;
+}
+
+main:has(> section.max-w-xl) form > label > span:nth-child(2):focus-within {
+  border-color: #23747a !important;
+  box-shadow: 0 0 0 4px rgb(35 116 122 / 0.12) !important;
+  transform: translateY(-1px);
+}
+
+main:has(> section.max-w-xl) form input {
+  min-width: 0;
+  color: #17313a;
+  font-size: 0.93rem;
+  background: transparent;
+}
+
+main:has(> section.max-w-xl) form input::placeholder {
+  color: #91a4a7;
+}
+
+main:has(> section.max-w-xl) form > label > span:nth-child(2) > svg {
+  flex: 0 0 auto;
+  color: #6d9492;
+}
+
+main:has(> section.max-w-xl) fieldset {
+  border: 0;
+  padding: 0;
+}
+
+main:has(> section.max-w-xl) fieldset > div {
+  gap: 0.5rem;
+}
+
+main:has(> section.max-w-xl) fieldset button {
+  min-height: 5.5rem;
+  border: 1px solid #d4e3e1 !important;
+  border-radius: 0.8rem !important;
+  background: #fbfdfd !important;
+  color: #4b676c !important;
+  transition: border-color 180ms ease, box-shadow 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+main:has(> section.max-w-xl) fieldset button:hover,
+main:has(> section.max-w-xl) fieldset button.border-rose-500 {
+  border-color: #23747a !important;
+  color: #174b57 !important;
+  box-shadow: 0 6px 16px rgb(35 116 122 / 0.1) !important;
+  transform: translateY(-1px);
+}
+
+main:has(> section.max-w-xl) form > button[type='submit'] {
+  min-height: 3.25rem;
+  margin-top: 0.45rem;
+  border: 0;
+  border-radius: 0.8rem !important;
+  background: linear-gradient(135deg, #23747a, #174b57) !important;
+  box-shadow: 0 10px 18px rgb(35 116 122 / 0.2) !important;
+  transition: box-shadow 180ms ease, transform 180ms ease, filter 180ms ease;
+}
+
+main:has(> section.max-w-xl) form > button[type='submit']:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 14px 24px rgb(35 116 122 / 0.25) !important;
+  transform: translateY(-2px);
+}
+
+main:has(> section.max-w-xl) form > button[type='submit']:active {
+  transform: translateY(0) scale(0.99);
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > label {
+  color: #5c747a !important;
+  font-size: 0.75rem;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > label svg {
+  color: #23747a;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > button:last-child {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  border: 1px solid #b9d8d3 !important;
+  border-radius: 0.8rem !important;
+  background: #eef8f5 !important;
+  color: #235d61 !important;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > button:last-child:hover {
+  border-color: #76aaa3 !important;
+  background: #e4f2ee !important;
+  transform: translateY(-1px);
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > div.fixed {
+  background: rgb(17 43 49 / 0.58) !important;
+  backdrop-filter: blur(8px);
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > div.fixed > section {
+  border: 1px solid #d8e7e4;
+  box-shadow: 0 24px 70px rgb(23 63 70 / 0.2) !important;
+}
+
+@keyframes login-card-enter {
+  from { opacity: 0; transform: translateY(18px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes login-mark-enter {
+  from { opacity: 0; transform: scale(0.82) rotate(-5deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@keyframes login-form-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  main:has(> section.max-w-xl) {
+    align-items: flex-start !important;
+    padding: 1rem !important;
+  }
+
+  main:has(> section.max-w-xl) > section.max-w-xl {
+    padding: 1.35rem !important;
+    border-radius: 1.2rem !important;
+  }
+
+  main:has(> section.max-w-xl) fieldset > div {
+    grid-template-columns: 1fr;
+  }
+
+  main:has(> section.max-w-xl) fieldset button {
+    min-height: 3.8rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    text-align: left;
+    column-gap: 0.6rem;
+    padding: 0.75rem;
+  }
+
+  main:has(> section.max-w-xl) fieldset button span:last-child {
+    grid-column: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main:has(> section.max-w-xl) > section.max-w-xl,
+  main:has(> section.max-w-xl) > section.max-w-xl > header > div:first-child,
+  main:has(> section.max-w-xl) form {
+    animation: none;
+  }
+
+  main:has(> section.max-w-xl) * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Split-screen composition for the authentication surface. */
+main:has(> section.max-w-xl) > section.max-w-xl {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.9fr) minmax(22rem, 1.1fr);
+  align-items: start;
+  width: min(100%, 70rem);
+  max-height: none;
+  padding: 0 !important;
+  overflow: visible;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl::before {
+  content: 'SMRITI-NER\A\A COGNITIVE CARE,\A CONNECTED\A\A Supporting healthier minds through accessible AI-powered cognitive care.';
+  display: flex;
+  grid-column: 1;
+  grid-row: 1 / span 6;
+  min-height: 100%;
+  align-items: flex-end;
+  padding: 3rem;
+  white-space: pre-line;
+  color: #eaf8f5;
+  font-size: clamp(1rem, 1.7vw, 1.25rem);
+  font-weight: 650;
+  line-height: 1.55;
+  letter-spacing: 0;
+  background: linear-gradient(150deg, #174b57 0%, #23747a 58%, #4d9290 100%);
+  box-shadow: inset -1px 0 rgb(255 255 255 / 0.16);
+  animation: login-panel-enter 540ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: 1.8rem;
+  left: 2rem;
+  width: 11rem;
+  height: 11rem;
+  border: 1px solid rgb(222 248 241 / 0.24);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.25rem rgb(222 248 241 / 0.06), 0 0 0 2.5rem rgb(222 248 241 / 0.04);
+  pointer-events: none;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > header,
+main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(1),
+main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(2),
+main:has(> section.max-w-xl) > section.max-w-xl > form,
+main:has(> section.max-w-xl) > section.max-w-xl > label,
+main:has(> section.max-w-xl) > section.max-w-xl > button:last-of-type {
+  grid-column: 2;
+  width: auto;
+  margin-left: 3rem;
+  margin-right: 3rem;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > header {
+  z-index: 1;
+  padding-top: 3rem;
+  margin-bottom: 1.7rem !important;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(1) {
+  margin-bottom: 1.2rem !important;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(2) {
+  margin-bottom: 1.5rem !important;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > form {
+  min-width: 0;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > label {
+  margin-top: 0.1rem;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > button:last-of-type {
+  margin-bottom: 3rem;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > div.fixed {
+  grid-column: 1 / -1;
+}
+
+@keyframes login-panel-enter {
+  from { opacity: 0; transform: translateX(-18px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (max-width: 760px) {
+  main:has(> section.max-w-xl) > section.max-w-xl {
+    display: block;
+    width: min(100%, 40rem);
+    max-height: none;
+    overflow: visible;
+  }
+
+  main:has(> section.max-w-xl) > section.max-w-xl::before {
+    min-height: 12rem;
+    padding: 1.5rem 1.5rem 1.75rem;
+    align-items: flex-end;
+    background: linear-gradient(150deg, #174b57 0%, #23747a 100%);
+  }
+
+  main:has(> section.max-w-xl) > section.max-w-xl::after {
+    top: 1rem;
+    left: auto;
+    right: 1.5rem;
+    width: 7rem;
+    height: 7rem;
+  }
+
+  main:has(> section.max-w-xl) > section.max-w-xl > header,
+  main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(1),
+  main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(2),
+  main:has(> section.max-w-xl) > section.max-w-xl > form,
+  main:has(> section.max-w-xl) > section.max-w-xl > label,
+  main:has(> section.max-w-xl) > section.max-w-xl > button:last-of-type {
+    margin-left: 1.35rem;
+    margin-right: 1.35rem;
+  }
+
+  main:has(> section.max-w-xl) > section.max-w-xl > header {
+    padding-top: 1.5rem;
+  }
+
+  main:has(> section.max-w-xl) > section.max-w-xl > button:last-of-type {
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main:has(> section.max-w-xl) > section.max-w-xl::before {
+    animation: none;
+  }
+}
+
+@media (min-width: 761px) {
+  main:has(> section.max-w-xl) {
+    padding: clamp(1rem, 2.5vw, 2.5rem) !important;
+  }
+
+  main:has(> section.max-w-xl) > section.max-w-xl {
+    width: min(100%, 74rem);
+    min-height: 0;
+    max-height: none;
+    grid-template-columns: minmax(19rem, 0.46fr) minmax(27rem, 0.54fr);
+  }
+
+  main:has(> section.max-w-xl) > section.max-w-xl::before {
+    align-items: center;
+    padding: 3.5rem;
+  }
+
+  main:has(> section.max-w-xl) > section.max-w-xl::after {
+    top: 2rem;
+    left: 2.5rem;
+    width: 8rem;
+    height: 8rem;
+    box-shadow: 0 0 0 1rem rgb(222 248 241 / 0.06), 0 0 0 2rem rgb(222 248 241 / 0.04);
+  }
+
+  main:has(> section.max-w-xl) > section.max-w-xl > header,
+  main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(1),
+  main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(2),
+  main:has(> section.max-w-xl) > section.max-w-xl > form,
+  main:has(> section.max-w-xl) > section.max-w-xl > label,
+  main:has(> section.max-w-xl) > section.max-w-xl > button:last-of-type {
+    margin-left: 3.5rem;
+    margin-right: 3.5rem;
+  }
+
+  main:has(> section.max-w-xl) > section.max-w-xl > header {
+    padding-top: 3.5rem;
+  }
+
+  main:has(> section.max-w-xl) form.space-y-4 {
+    row-gap: 0.85rem;
+  }
+
+  main:has(> section.max-w-xl) form.space-y-4 > label,
+  main:has(> section.max-w-xl) form.space-y-4 fieldset {
+    margin-bottom: 0;
+  }
+
+  main:has(> section.max-w-xl) form > button[type='submit'] {
+    margin-top: 0.2rem;
+  }
+}
+
+/* Keep every grid and form child shrinkable at the actual panel boundary. */
+main:has(> section.max-w-xl) > section.max-w-xl > *,
+main:has(> section.max-w-xl) form,
+main:has(> section.max-w-xl) form > *,
+main:has(> section.max-w-xl) fieldset,
+main:has(> section.max-w-xl) fieldset > div {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl {
+  width: min(100%, 74rem);
+  max-width: min(100%, 74rem) !important;
+}
+
+main:has(> section.max-w-xl) form input {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > header h1,
+main:has(> section.max-w-xl) > section.max-w-xl > header p {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(2),
+main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(2) button,
+main:has(> section.max-w-xl) form > button[type='submit'],
+main:has(> section.max-w-xl) > section.max-w-xl > button:last-of-type {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+main:has(> section.max-w-xl) form > fieldset > div {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+main:has(> section.max-w-xl) form > fieldset button {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  main:has(> section.max-w-xl) > section.max-w-xl {
+    width: min(100%, 64rem);
+    grid-template-columns: minmax(0, 0.43fr) minmax(0, 0.57fr);
+  }
+
+  main:has(> section.max-w-xl) > section.max-w-xl > header,
+  main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(1),
+  main:has(> section.max-w-xl) > section.max-w-xl > div:nth-of-type(2),
+  main:has(> section.max-w-xl) > section.max-w-xl > form,
+  main:has(> section.max-w-xl) > section.max-w-xl > label,
+  main:has(> section.max-w-xl) > section.max-w-xl > button:last-of-type {
+    margin-left: 2rem;
+    margin-right: 2rem;
+  }
+}
+
+@media (max-width: 760px) {
+  main:has(> section.max-w-xl) {
+    min-height: 100svh;
+    overflow: visible;
+  }
+
+  main:has(> section.max-w-xl) > section.max-w-xl {
+    max-height: none;
+    overflow: visible;
+  }
+
+  main:has(> section.max-w-xl) form > fieldset > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 500px) {
+  main:has(> section.max-w-xl) form > fieldset > div {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import './LoginPage.css';
 import { usePatient } from '../context/PatientContext.jsx';
 import { soundFx } from '../utils/audio.js';
 import { speechService } from '../i18n/speechService.js';

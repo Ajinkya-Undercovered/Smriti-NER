@@ -34,11 +34,11 @@
 @keyframes breathe {
   0%, 100% {
     transform: scale(1);
-    box-shadow: 0 10px 25px -5px rgba(244, 63, 94, 0.4), 0 8px 10px -6px rgba(244, 63, 94, 0.4);
+    box-shadow: 0 10px 25px -5px rgb(35 116 122 / 0.22), 0 8px 10px -6px rgb(35 116 122 / 0.18);
   }
   50% {
     transform: scale(1.08);
-    box-shadow: 0 20px 35px -5px rgba(244, 63, 94, 0.6), 0 12px 16px -6px rgba(244, 63, 94, 0.5);
+    box-shadow: 0 20px 35px -5px rgb(35 116 122 / 0.32), 0 12px 16px -6px rgb(35 116 122 / 0.24);
   }
 }
 
@@ -76,3 +76,357 @@
 .animate-wave-2 { animation: wave-pulse 1.2s ease-in-out infinite 0.2s; }
 .animate-wave-3 { animation: wave-pulse 1.2s ease-in-out infinite 0.4s; }
 .animate-wave-4 { animation: wave-pulse 1.2s ease-in-out infinite 0.6s; }
+
+/* Professional clinical visual system. Component behavior remains utility-driven. */
+:root {
+  --brand-900: #173f46;
+  --brand-800: #1b5960;
+  --brand-700: #23747a;
+  --brand-100: #e4f1ef;
+  --ink-900: #17313a;
+  --ink-700: #47616a;
+  --ink-500: #6d8289;
+  --surface: #ffffff;
+  --canvas: #f4f7f7;
+  --line: #d7e3e4;
+  --warning: #b45309;
+}
+
+html {
+  background: var(--canvas);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  max-width: 100%;
+  min-width: 0;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+main,
+section,
+article,
+header,
+footer,
+nav,
+div,
+form,
+fieldset,
+table {
+  min-width: 0;
+}
+
+body {
+  background: var(--canvas) !important;
+  color: var(--ink-900) !important;
+  font-family: var(--font-primary);
+  letter-spacing: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  border-radius: 0.75rem;
+}
+
+button {
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid #7bb9b3;
+  outline-offset: 2px;
+}
+
+/* Wrapped inputs use one focus surface on the field container. */
+.focus-within\:ring-2:focus-within {
+  border-color: var(--brand-700) !important;
+  box-shadow: none !important;
+}
+
+.focus-within\:ring-2 input:focus-visible,
+.focus-within\:ring-2 select:focus-visible,
+.focus-within\:ring-2 textarea:focus-visible {
+  outline: none !important;
+}
+
+/* Remove decorative gradients and replace heavy surfaces with quiet panels. */
+[class*="bg-gradient"],
+[class*="bg-linear"] {
+  background-image: none !important;
+}
+
+.min-h-screen[class*="from-"] {
+  background: var(--canvas) !important;
+}
+
+[class*="bg-[#fef2f2]"] {
+  background-color: var(--canvas) !important;
+}
+
+[class*="bg-gradient-to-br"],
+[class*="bg-linear-to-br"] {
+  background-color: var(--surface) !important;
+  border: 1px solid var(--line) !important;
+  color: var(--ink-900) !important;
+}
+
+[class*="bg-gradient-to-br"] .text-white,
+[class*="bg-gradient-to-br"] [class*="text-white/"],
+[class*="bg-linear-to-br"] .text-white,
+[class*="bg-linear-to-br"] [class*="text-white/"] {
+  color: var(--ink-900) !important;
+}
+
+[class*="bg-gradient-to-br"] [class*="bg-white/"],
+[class*="bg-linear-to-br"] [class*="bg-white/"] {
+  background-color: var(--brand-100) !important;
+  border-color: var(--line) !important;
+}
+
+[class*="bg-gradient-to-br"] [class*="border-white/"],
+[class*="bg-linear-to-br"] [class*="border-white/"] {
+  border-color: var(--line) !important;
+}
+
+[class*="bg-linear-to-tr"] {
+  background-color: var(--brand-700) !important;
+}
+
+[class*="bg-gradient-to-r"],
+[class*="bg-linear-to-r"] {
+  background-color: var(--brand-700) !important;
+  color: #ffffff !important;
+}
+
+[class*="bg-gradient-to-r"] .text-white,
+[class*="bg-linear-to-r"] .text-white {
+  color: #ffffff !important;
+}
+
+[class*="bg-gradient-to-r"] [class*="text-teal-"],
+[class*="bg-linear-to-r"] [class*="text-teal-"],
+[class*="bg-gradient-to-r"] [class*="text-emerald-"],
+[class*="bg-linear-to-r"] [class*="text-emerald-"] {
+  color: #ffffff !important;
+}
+
+[class*="bg-gradient-to-r"] button[class*="bg-white"],
+[class*="bg-linear-to-r"] button[class*="bg-white"] {
+  background-color: var(--brand-100) !important;
+  color: var(--brand-900) !important;
+  border: 1px solid rgb(255 255 255 / 0.55) !important;
+}
+
+.bg-white\/95,
+.bg-white\/90,
+.bg-white\/80,
+.bg-white {
+  background-color: var(--surface) !important;
+}
+
+.backdrop-blur-md {
+  backdrop-filter: none !important;
+}
+
+.rounded-3xl {
+  border-radius: 1rem !important;
+}
+
+.rounded-2xl {
+  border-radius: 0.75rem !important;
+}
+
+.rounded-xl {
+  border-radius: 0.625rem !important;
+}
+
+.shadow-2xl,
+.shadow-xl,
+.shadow-lg,
+.shadow-md,
+.shadow-sm,
+.shadow-xs {
+  box-shadow: 0 5px 18px rgb(23 63 70 / 0.08) !important;
+}
+
+.border-3,
+.border-2,
+.border {
+  border-color: var(--line) !important;
+}
+
+/* Brand surfaces: one teal family for actions and navigation. */
+[class*="bg-rose-500"],
+[class*="bg-rose-600"],
+[class*="bg-teal-700"],
+[class*="bg-orange-600"] {
+  background-color: var(--brand-700) !important;
+  color: #ffffff !important;
+}
+
+[class*="hover\\:bg-rose-600"]:hover,
+[class*="hover\\:bg-teal-800"]:hover,
+[class*="hover\\:bg-orange-700"]:hover {
+  background-color: var(--brand-800) !important;
+}
+
+[class*="bg-rose-50"],
+[class*="bg-rose-100"],
+[class*="bg-rose-200"],
+[class*="bg-teal-50"],
+[class*="bg-teal-100"],
+[class*="bg-teal-200"],
+[class*="bg-orange-50"],
+[class*="bg-orange-100"],
+[class*="bg-orange-200"],
+[class*="bg-emerald-50"],
+[class*="bg-emerald-100"],
+[class*="bg-emerald-200"],
+[class*="bg-sky-50"],
+[class*="bg-sky-100"],
+[class*="bg-purple-50"],
+[class*="bg-purple-100"] {
+  background-color: var(--brand-100) !important;
+}
+
+[class*="text-rose-"],
+[class*="text-teal-"],
+[class*="text-orange-"],
+[class*="text-emerald-"],
+[class*="text-sky-"],
+[class*="text-purple-"] {
+  color: var(--brand-800) !important;
+}
+
+[class*="border-rose-"],
+[class*="border-teal-"],
+[class*="border-orange-"],
+[class*="border-emerald-"],
+[class*="border-sky-"],
+[class*="border-purple-"] {
+  border-color: var(--line) !important;
+}
+
+.font-black {
+  font-weight: 750;
+}
+
+.uppercase {
+  letter-spacing: 0.06em;
+}
+
+/* Keep the persistent demo status clear of the application header. */
+.fixed.top-3.left-1\/2 {
+  left: auto !important;
+  right: 0.75rem !important;
+  transform: none !important;
+  top: 0.75rem !important;
+  border-radius: 0.625rem !important;
+}
+
+header.sticky {
+  border-bottom-width: 1px !important;
+  box-shadow: 0 3px 14px rgb(23 63 70 / 0.06) !important;
+}
+
+header.sticky > div {
+  min-height: 4.5rem;
+}
+
+nav.fixed.bottom-0 {
+  border-top-width: 1px !important;
+  box-shadow: 0 -3px 14px rgb(23 63 70 / 0.06) !important;
+}
+
+nav.fixed.bottom-0 button {
+  min-height: 3rem;
+}
+
+@media (max-width: 640px) {
+  .p-6 {
+    padding: 1.125rem;
+  }
+
+  .p-10 {
+    padding: 1.5rem;
+  }
+
+  .fixed.top-3.left-1\/2 {
+    right: 0.5rem !important;
+    top: 0.5rem !important;
+  }
+
+  /* Keep the primary app navigation inside narrow phone viewports. */
+  nav.sticky > div {
+    width: 100%;
+    min-width: 0 !important;
+    flex-wrap: wrap;
+    justify-content: stretch;
+    gap: 0.25rem;
+  }
+
+  nav.sticky > div > button {
+    flex: 1 1 calc(50% - 0.25rem);
+    min-width: 0;
+    max-width: 100%;
+    justify-content: center;
+    padding-inline: 0.5rem;
+  }
+
+  nav.sticky > div > button > span {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+
+  header.sticky > div {
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  header.sticky > div > div:first-child,
+  header.sticky > div > div:last-child {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  header.sticky > div > div:first-child {
+    flex: 1 1 100%;
+  }
+
+  header.sticky > div > div:last-child {
+    flex: 1 1 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  header.sticky > div > div:last-child > div {
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  header.sticky > div > div:last-child > div > button {
+    min-width: 0;
+    max-width: 100%;
+  }
+}

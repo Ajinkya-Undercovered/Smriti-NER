@@ -13,7 +13,9 @@ import {
   Sparkles, 
   Heart, 
   Droplet,
-  BellRing
+  BellRing,
+  BarChart3,
+  ListTodo
 } from 'lucide-react';
 
 export const SimplifiedSeniorHome = ({ onNavigate, onOpenVoice }) => {
@@ -59,7 +61,7 @@ export const SimplifiedSeniorHome = ({ onNavigate, onOpenVoice }) => {
       nameEn: 'Play Memory & Joy Games (8 Games)',
       descAs: 'স্মৃতিশক্তি আৰু আনন্দৰ বাবে চিনেমাৰ দৰে সুন্দৰ খেল খেলক',
       descEn: 'Cultural card matching, shadow recognition, and flower sorting',
-      icon: '🎮',
+      icon: Gamepad2,
       colorBg: 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white',
       badge: '8 Dementia Games Active',
       ringColor: 'ring-emerald-200 hover:ring-8'
@@ -70,7 +72,7 @@ export const SimplifiedSeniorHome = ({ onNavigate, onOpenVoice }) => {
       nameEn: 'My Medicines & Water Intake',
       descAs: `${pendingMedsCount > 0 ? `${pendingMedsCount} টা ঔষধ খাবলৈ বাকী আছে` : 'সকলো ঔষধ খোৱা হ’ল'} • ${waterCount}/8 গিলাচ পানী`,
       descEn: `${pendingMedsCount} doses remaining • ${waterCount}/8 glasses of fresh water`,
-      icon: '💊',
+      icon: Pill,
       colorBg: 'bg-gradient-to-br from-sky-500 to-blue-600 text-white',
       badge: `${pendingMedsCount} Meds Pending`,
       ringColor: 'ring-sky-200 hover:ring-8'
@@ -81,7 +83,7 @@ export const SimplifiedSeniorHome = ({ onNavigate, onOpenVoice }) => {
       nameEn: 'Talk to AI Voice Companion',
       descAs: 'মোক কওক, মই আপোনাক সহায় কৰিম (ঔষধ, সময় বা গীত)',
       descEn: 'Tap to speak hands-free in Assamese or English',
-      icon: '🎙️',
+      icon: Mic,
       colorBg: 'bg-gradient-to-br from-rose-500 to-pink-600 text-white',
       badge: 'Neural Voice AI',
       ringColor: 'ring-rose-200 hover:ring-8',
@@ -93,7 +95,7 @@ export const SimplifiedSeniorHome = ({ onNavigate, onOpenVoice }) => {
       nameEn: 'Calm Sounds & Reminiscence Stories',
       descAs: 'ব্ৰহ্মপুত্ৰৰ নদী, চেৰাপুঞ্জীৰ বৰষুণ আৰু পাহাৰীয়া বাঁহীৰ সুৰ',
       descEn: 'Gentle river waves, rain sounds, folklore, and breathing therapy',
-      icon: '🌸',
+      icon: Wind,
       colorBg: 'bg-gradient-to-br from-purple-600 to-indigo-700 text-white',
       badge: 'Relaxation & Calm',
       ringColor: 'ring-purple-200 hover:ring-8'
@@ -104,10 +106,32 @@ export const SimplifiedSeniorHome = ({ onNavigate, onOpenVoice }) => {
       nameEn: 'Doctor, ASHA Worker & Emergency 108',
       descAs: 'ডাঃ ভূপেন শৰ্মা আৰু আশা বাইদেউৰ সৈতে পোনপটীয়া যোগাযোগ',
       descEn: 'View upcoming neurological appointments and emergency contacts',
-      icon: '🩺',
+      icon: Stethoscope,
       colorBg: 'bg-gradient-to-br from-amber-500 to-orange-600 text-white',
       badge: 'Health Network',
       ringColor: 'ring-amber-200 hover:ring-8'
+    },
+    {
+      id: 'progress',
+      nameAs: 'মোৰ অগ্ৰগতি',
+      nameEn: 'My Progress',
+      descAs: 'খেল আৰু দৈনন্দিন কাৰ্যকলাপৰ অগ্ৰগতি চাওক',
+      descEn: 'Review cognitive performance and activity progress',
+      icon: BarChart3,
+      colorBg: 'bg-gradient-to-br from-teal-600 to-cyan-700 text-white',
+      badge: 'Activity Progress',
+      ringColor: 'ring-teal-200 hover:ring-8'
+    },
+    {
+      id: 'todo',
+      nameAs: 'আজিৰ কামসমূহ',
+      nameEn: "Today's To-Do",
+      descAs: 'আজিৰ কাম যোগ কৰক আৰু সম্পূৰ্ণ হোৱা চিহ্নিত কৰক',
+      descEn: 'Add, complete, edit, and remove daily tasks',
+      icon: ListTodo,
+      colorBg: 'bg-gradient-to-br from-slate-600 to-slate-700 text-white',
+      badge: 'Daily Tasks',
+      ringColor: 'ring-slate-200 hover:ring-8'
     }
   ];
 
@@ -170,7 +194,7 @@ export const SimplifiedSeniorHome = ({ onNavigate, onOpenVoice }) => {
           >
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-5xl sm:text-6xl filter drop-shadow-md">{tile.icon}</span>
+                <span className="text-5xl sm:text-6xl text-teal-700"><tile.icon aria-hidden="true" strokeWidth={1.8} /></span>
                 <span className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white">
                   {tile.badge}
                 </span>
