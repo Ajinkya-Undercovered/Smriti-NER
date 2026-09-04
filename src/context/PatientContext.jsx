@@ -1,5 +1,6 @@
-﻿import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { localDB } from '../storage/db.js';
+import { offlineSyncService } from '../storage/offlineSyncService.js';
 import { TRANSLATIONS } from '../i18n/languages.js';
 import { speechService } from '../i18n/speechService.js';
 import { cognitiveAnalyzer } from '../ai/cognitiveAnalyzer.js';
@@ -192,6 +193,17 @@ export const PatientProvider = ({ children }) => {
 
     const updated = isDemoMode ? [...gameSessions, { ...fullSession, id: `demo-${Date.now()}`, timestamp: Date.now() }] : localDB.addSession(fullSession);
     setGameSessions(updated);
+
+    if (!isDemoMode) {
+      offlineSyncService.enqueue('LOG_GAME_SESSION', {
+        patientId: patient?.id || 'bipin-72',
+        gameId: sessionData.gameId || 'memory-match',
+        score: sessionData.score || 0,
+        accuracy: sessionData.accuracy || 100,
+        latencyMs: sessionData.averageLatencyMs || 1200,
+        fluencyScore
+      });
+    }
 
 
     // AI Adaptive Difficulty check for next session

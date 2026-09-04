@@ -1,0 +1,43 @@
+﻿{
+  "name": "Smriti-NER | স্মৃতি - Cognitive & Dementia Care Platform",
+  "short_name": "Smriti-NER",
+  "description": "Offline-First AI Cognitive, Memory & Dementia Care Platform for North East India",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#fff1f2",
+  "theme_color": "#f43f5e",
+  "lang": "as-IN",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "health",
+    "medical",
+    "lifestyle",
+    "education"
+  ],
+  "shortcuts": [
+    {
+      "name": "Memory Games",
+      "short_name": "Games",
+      "description": "Play 8 cultural cognitive memory games",
+      "url": "/?tab=games",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Medicine Tracker",
+      "short_name": "Medicines",
+      "description": "Daily medication and hydration log",
+      "url": "/?tab=reminders",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    }
+  ]
+}

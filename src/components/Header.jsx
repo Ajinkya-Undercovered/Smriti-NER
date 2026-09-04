@@ -1,7 +1,8 @@
-﻿import React from 'react';
+import React from 'react';
 import { Menu, Stethoscope, Brain, HeartPulse, Wind, Home, Volume2, UserCheck } from 'lucide-react';
 import { usePatient } from '../context/PatientContext.jsx';
 import { DualAudioToggle } from './common/DualAudioToggle.jsx';
+import { NetworkStatusBanner } from './common/NetworkStatusBanner.jsx';
 
 export const Header = ({ activeTab, setActiveTab, onOpenDrawer, onDoctorClick }) => {
   const { patient, t, currentUser } = usePatient();
@@ -54,8 +55,9 @@ export const Header = ({ activeTab, setActiveTab, onOpenDrawer, onDoctorClick })
           </div>
         </div>
 
-        {/* Dual Audio Toggle (English / Assamese / Dual) */}
+        {/* Right Controls: Network Status + Dual Audio Toggle + Action Shortcuts */}
         <div className="flex items-center gap-2">
+          <NetworkStatusBanner />
           <DualAudioToggle />
 
           {/* Home Button (Always visible when navigated away) */}
