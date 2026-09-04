@@ -1,12 +1,14 @@
-﻿// Smriti-NER Progressive Web App Service Worker (Ultra-Fast Offline Engine v4)
-const CACHE_NAME = 'smriti-ner-v4';
+﻿// Smriti-NER Progressive Web App Service Worker (Instant Sub-Second Offline Engine v5)
+const CACHE_NAME = 'smriti-ner-v5';
 
 const CORE_SHELL_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/favicon.svg',
-  '/icons.svg'
+  '/icons.svg',
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 // 1. Install Event: Pre-cache static application shell individually
@@ -46,7 +48,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Fetch Event: Instant Zero-Latency Offline Serving
+// 3. Fetch Event: Instant Zero-Lag Offline Serving with 600ms Network Race
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -60,27 +62,40 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     event.respondWith(
       (async () => {
-        // If device is offline, return cached index.html immediately!
-        if (!navigator.onLine) {
-          const cached = (await caches.match('/index.html')) || (await caches.match('/'));
-          if (cached) return cached;
+        // Check if we have cached index.html
+        const cached = (await caches.match('/index.html')) || (await caches.match('/'));
+
+        // If cached copy exists, race network for max 600ms. If network is slow/offline, serve cache immediately!
+        if (cached) {
+          if (!navigator.onLine) {
+            return cached; // 0ms instantaneous offline launch!
+          }
+
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 600); // 600ms timeout!
+            const networkResponse = await fetch(request, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (networkResponse && networkResponse.status === 200) {
+              const clone = networkResponse.clone();
+              const cache = await caches.open(CACHE_NAME);
+              cache.put('/index.html', clone.clone());
+              cache.put('/', clone);
+              return networkResponse;
+            }
+          } catch (err) {
+            // Network slow, stalled, or offline — return cached shell immediately!
+            return cached;
+          }
+          return cached;
         }
 
+        // If no cache, standard fetch
         try {
-          // Try network when online
-          const networkResponse = await fetch(request);
-          if (networkResponse && networkResponse.status === 200) {
-            const clone = networkResponse.clone();
-            const cache = await caches.open(CACHE_NAME);
-            cache.put('/index.html', clone.clone());
-            cache.put('/', clone);
-          }
-          return networkResponse;
+          return await fetch(request);
         } catch (err) {
-          // Network failed (offline fallback)
-          const cached = (await caches.match('/index.html')) || (await caches.match('/'));
-          if (cached) return cached;
-          throw err;
+          return (await caches.match('/index.html')) || (await caches.match('/'));
         }
       })()
     );
@@ -90,10 +105,10 @@ self.addEventListener('fetch', (event) => {
   // Strategy B: All other assets (JS bundles, CSS, SVGs, Fonts, Images)
   event.respondWith(
     (async () => {
-      // 1. Check cache first
+      // 1. Check cache first - Return in 0ms!
       const cached = await caches.match(request, { ignoreSearch: true });
       if (cached) {
-        // Return cached asset immediately. Revalidate in background if online.
+        // Background revalidation if online
         if (navigator.onLine) {
           fetch(request).then(async (res) => {
             if (res && res.status === 200) {
@@ -105,9 +120,13 @@ self.addEventListener('fetch', (event) => {
         return cached;
       }
 
-      // 2. Not in cache yet: Fetch from network and save to cache
+      // 2. Not in cache yet: Fetch from network with 1500ms timeout
       try {
-        const response = await fetch(request);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1500);
+        const response = await fetch(request, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
         if (response && response.status === 200) {
           const clone = response.clone();
           const cache = await caches.open(CACHE_NAME);
@@ -115,10 +134,7 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       } catch (err) {
-        // If network failed and not found, try fuzzy match
-        const fallback = await caches.match(request);
-        if (fallback) return fallback;
-        throw err;
+        return (await caches.match(request)) || new Response('', { status: 408 });
       }
     })()
   );
