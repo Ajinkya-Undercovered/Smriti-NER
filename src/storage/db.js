@@ -1,4 +1,4 @@
-﻿﻿// Offline-First Local Storage & IndexedDB Synchronization Database
+﻿// Offline-First Local Storage & IndexedDB Synchronization Database
 import { 
   INITIAL_PATIENT_PROFILE, 
   INITIAL_FAMILY_ALBUM, 
@@ -85,7 +85,14 @@ class LocalDB {
   getFamilyAlbum() {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.FAMILY);
-      return data ? JSON.parse(data) : INITIAL_FAMILY_ALBUM;
+      if (!data) return INITIAL_FAMILY_ALBUM;
+      const parsed = JSON.parse(data);
+      // Auto-migrate if stored photos contain emojis or missing http URLs
+      if (Array.isArray(parsed) && parsed.some(p => !p.photoUrl || !p.photoUrl.startsWith('http'))) {
+        localStorage.setItem(STORAGE_KEYS.FAMILY, JSON.stringify(INITIAL_FAMILY_ALBUM));
+        return INITIAL_FAMILY_ALBUM;
+      }
+      return parsed;
     } catch {
       return INITIAL_FAMILY_ALBUM;
     }

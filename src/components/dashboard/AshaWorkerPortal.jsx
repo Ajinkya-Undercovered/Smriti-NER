@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { usePatient } from '../../context/PatientContext.jsx';
 import { soundFx } from '../../utils/audio.js';
 import { speechService } from '../../i18n/speechService.js';
@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 export const AshaWorkerPortal = ({ onLaunchPatientMode, onNavigateClinical }) => {
-  const { patient, gameSessions, medications } = usePatient();
+  const { patient, gameSessions, medications, familyAlbum } = usePatient();
 
   // Rapid 5-Item Digital Rural Cognitive Screening
   const [screeningAnswers, setScreeningAnswers] = useState({
@@ -284,6 +284,50 @@ export const AshaWorkerPortal = ({ onLaunchPatientMode, onNavigateClinical }) =>
           </div>
         </div>
 
+      </div>
+
+      {/* Family Memory Album & Reminiscence Section */}
+      <div className="bg-white border-3 border-orange-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-orange-100 pb-3">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl p-2 bg-orange-50 rounded-2xl border border-orange-200">🖼️</span>
+            <div>
+              <h3 className="font-black text-slate-900 text-lg sm:text-xl">Family Reminiscence Photo Album</h3>
+              <p className="text-xs text-slate-500">Personal photos used in patient's cognitive memory games</p>
+            </div>
+          </div>
+          <span className="text-xs font-bold text-orange-800 bg-orange-100 px-3 py-1 rounded-full">
+            {(familyAlbum || []).length} Active Memory Cues
+          </span>
+        </div>
+
+        {/* Photos Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {(familyAlbum || []).map(photo => (
+            <div key={photo.id} className="p-3.5 rounded-2xl bg-orange-50/50 border-2 border-orange-200 flex flex-col items-center text-center space-y-2.5 shadow-2xs hover:shadow-xs transition-shadow">
+              {photo.photoUrl && String(photo.photoUrl).startsWith('http') ? (
+                <img
+                  src={photo.photoUrl}
+                  alt={photo.name}
+                  className="w-24 h-24 rounded-2xl object-cover border-2 border-orange-300 shadow-xs transition-transform hover:scale-105"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80';
+                  }}
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-2xl bg-orange-100 border-2 border-orange-300 flex items-center justify-center text-4xl shadow-xs">
+                  {photo.photoUrl || '👤'}
+                </div>
+              )}
+              <div>
+                <h4 className="font-bold text-slate-900 text-xs sm:text-sm leading-tight">{photo.name}</h4>
+                <p className="text-[11px] text-orange-800 font-bold mt-0.5">{photo.relation}</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">{photo.location}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Tele-Consultation Referral to GMCH + SOS */}

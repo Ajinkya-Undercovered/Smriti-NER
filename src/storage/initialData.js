@@ -1,4 +1,4 @@
-﻿// Initial Culturally Tailored Assets & Clinical Data for North East India
+// Initial Culturally Tailored Assets & Clinical Data for North East India
 export const NER_CULTURAL_CARDS = [
   {
     id: 'rhino',
@@ -127,7 +127,7 @@ export const INITIAL_FAMILY_ALBUM = [
     id: 'fam-1',
     name: 'Riya (নাতিনী / Granddaughter)',
     relation: 'Granddaughter',
-    photoUrl: '👧',
+    photoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80',
     location: 'Cotton University, Guwahati',
     voiceHint: 'Your granddaughter Riya who studies in Guwahati',
     voiceHintAs: 'আপোনাৰ মৰমৰ নাতিনী ৰিয়া, যি গুৱাহাটীত পঢ়ে'
@@ -136,7 +136,7 @@ export const INITIAL_FAMILY_ALBUM = [
     id: 'fam-2',
     name: 'Debashish (ল' + "ৰা / Son)",
     relation: 'Son',
-    photoUrl: '👨‍💼',
+    photoUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=80',
     location: 'Tezpur Tea Estate Engineer',
     voiceHint: 'Your elder son Debashish from Tezpur',
     voiceHintAs: 'আপোনাৰ বৰ ল' + "ৰা দেৱাশীষ"
@@ -145,7 +145,7 @@ export const INITIAL_FAMILY_ALBUM = [
     id: 'fam-3',
     name: 'Ancestral Tea Bungalow (পুৰণি চাহ বাগিচাৰ ঘৰ)',
     relation: 'Home',
-    photoUrl: '🏡',
+    photoUrl: 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=400&auto=format&fit=crop&q=80',
     location: 'Sonitpur, Assam',
     voiceHint: 'Your peaceful home in Tezpur with garden',
     voiceHintAs: 'তেজপুৰৰ আপোনাৰ আপোন ফুলনি থকা ঘৰখন'
@@ -154,7 +154,7 @@ export const INITIAL_FAMILY_ALBUM = [
     id: 'fam-4',
     name: 'Sheru (পোহনীয়া কুকুৰ / Pet Dog)',
     relation: 'Pet',
-    photoUrl: '🐕',
+    photoUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&auto=format&fit=crop&q=80',
     location: 'Courtyard Companion',
     voiceHint: 'Your faithful dog Sheru',
     voiceHintAs: 'আপোনাৰ বিশ্বাসী পোহনীয়া কুকুৰ শ্বেৰু'
