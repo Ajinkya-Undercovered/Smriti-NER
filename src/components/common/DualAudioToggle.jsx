@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { speechService } from '../../i18n/speechService.js';
 import { soundFx } from '../../utils/audio.js';
 import { Volume2, Globe } from 'lucide-react';
@@ -12,7 +12,7 @@ export const DualAudioToggle = () => {
     soundFx.playCardFlip();
 
     if (mode === 'as') {
-      speechService.speak('মাতৃভাষা অসমীয়াত ধ্বনি সক্ৰিয় হ’ল', 'as');
+      speechService.speakBilingual('মাতৃভাষা অসমীয়াত ধ্বনি সক্ৰিয় হ’ল', 'Assamese audio guidance activated');
     } else if (mode === 'en') {
       speechService.speak('English audio guidance activated', 'en');
     } else {
