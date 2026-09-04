@@ -4,16 +4,28 @@ import { TRANSLATIONS } from '../i18n/languages.js';
 import { speechService } from '../i18n/speechService.js';
 import { cognitiveAnalyzer } from '../ai/cognitiveAnalyzer.js';
 import { adaptiveEngine } from '../ai/adaptiveEngine.js';
-import { supabaseService } from '../storage/supabaseService.js';
-import { isSupabaseConfigured } from '../storage/supabaseClient.js';
-import { DEFAULT_AUTH_USERS } from '../storage/initialData.js';
+import {
+  DEFAULT_AUTH_USERS,
+  INITIAL_PATIENT_PROFILE,
+  INITIAL_FAMILY_ALBUM,
+  INITIAL_MEDICATIONS,
+  INITIAL_DAILY_ROUTINES,
+  INITIAL_GAME_SESSIONS
+} from '../storage/initialData.js';
 
 const PatientContext = createContext();
+const DEMO_TODOS = [
+  { id: 'demo-todo-1', title: 'Take morning medicine', time: '08:30 AM', completed: false },
+  { id: 'demo-todo-2', title: 'Drink water', time: '10:00 AM', completed: false },
+  { id: 'demo-todo-3', title: 'Complete cognitive game', time: '11:00 AM', completed: false },
+  { id: 'demo-todo-4', title: 'Talk to family', time: '06:00 PM', completed: false }
+];
 
 export const PatientProvider = ({ children }) => {
   // Auth state - Auto login if session remembered
   const [currentUser, setCurrentUser] = useState(() => localDB.getAuthSession() || DEFAULT_AUTH_USERS[0]);
   const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(localDB.getAuthSession()));
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   const [patient, setPatient] = useState(() => localDB.getPatient());
   const [language, setLanguageState] = useState(() => localDB.getLanguage());
@@ -23,6 +35,7 @@ export const PatientProvider = ({ children }) => {
   const [familyAlbum, setFamilyAlbum] = useState(() => localDB.getFamilyAlbum());
   const [gameSessions, setGameSessions] = useState(() => localDB.getSessions());
   const [waterCount, setWaterCount] = useState(() => localDB.getWaterIntake());
+  const [todos, setTodos] = useState(() => localDB.getTodos());
   const [currentDifficulty, setCurrentDifficulty] = useState(1);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   
@@ -42,55 +55,54 @@ export const PatientProvider = ({ children }) => {
     };
   }, []);
 
-  // Background Cloud Sync with Supabase on mount (if configured)
-  useEffect(() => {
-    async function initSupabaseSync() {
-      if (!isSupabaseConfigured) return;
-
-      try {
-        const [cloudPatient, cloudSessions, cloudMeds, cloudFamily] = await Promise.all([
-          supabaseService.getPatient(patient.id),
-          supabaseService.getGameSessions(patient.id),
-          supabaseService.getMedications(patient.id),
-          supabaseService.getFamilyAlbum(patient.id)
-        ]);
-
-        if (cloudPatient) {
-          const merged = { ...patient, ...cloudPatient, regionalName: cloudPatient.regional_name || patient.regionalName };
-          setPatient(merged);
-          localDB.savePatient(merged);
-        }
-        if (cloudSessions && cloudSessions.length > 0) {
-          setGameSessions(cloudSessions);
-        }
-        if (cloudMeds && cloudMeds.length > 0) {
-          setMedications(cloudMeds);
-          localDB.saveMedications(cloudMeds);
-        }
-        if (cloudFamily && cloudFamily.length > 0) {
-          setFamilyAlbum(cloudFamily);
-          localDB.saveFamilyAlbum(cloudFamily);
-        }
-      } catch (err) {
-        console.warn('Initial Supabase sync fallback to local store', err);
-      }
-    }
-
-    initSupabaseSync();
-  }, []);
-
   const login = (user, rememberMe = true) => {
     setCurrentUser(user);
     setIsLoggedIn(true);
+    setIsDemoMode(false);
     if (rememberMe) {
       localDB.saveAuthSession(user);
     }
     localDB.saveRememberedUser(user);
   };
 
+  const enterDemo = (role = 'patient') => {
+    const demoPatient = {
+      ...INITIAL_PATIENT_PROFILE,
+      id: 'demo-patient',
+      name: 'Demo Patient',
+      regionalName: 'ডেমো ৰোগী',
+      location: 'Tezpur, Assam',
+      condition: 'Demo data only',
+      caregiverName: 'Demo Caregiver',
+      caregiverPhone: '+91 90000 00000',
+      ashaWorkerName: 'Demo ASHA Officer',
+      ashaPhone: '+91 90000 00001'
+    };
+    setCurrentUser({
+      id: 'demo-patient',
+      name: role === 'caregiver' ? 'Demo Caregiver' : role === 'asha_worker' ? 'Demo Officer' : 'Demo Patient',
+      regionalName: role === 'caregiver' ? 'ডেমো পৰিচৰ্যাকাৰী' : role === 'asha_worker' ? 'ডেমো আশা কৰ্মী' : 'ডেমো ৰোগী',
+      role,
+      patientId: 'demo-patient',
+      avatar: '👴',
+      location: 'Tezpur, Assam',
+      condition: 'Demo data only'
+    });
+    setPatient(demoPatient);
+    setMedications(INITIAL_MEDICATIONS);
+    setRoutines(INITIAL_DAILY_ROUTINES);
+    setFamilyAlbum(INITIAL_FAMILY_ALBUM);
+    setGameSessions(INITIAL_GAME_SESSIONS);
+    setWaterCount(4);
+    setTodos(DEMO_TODOS);
+    setIsDemoMode(true);
+    setIsLoggedIn(true);
+  };
+
   const logout = () => {
     localDB.clearAuthSession();
     setIsLoggedIn(false);
+    setIsDemoMode(false);
   };
 
   const setLanguage = (langCode) => {
@@ -119,40 +131,49 @@ export const PatientProvider = ({ children }) => {
       return med;
     });
     setMedications(updated);
-    localDB.saveMedications(updated);
-    // Sync to Supabase
-    supabaseService.saveMedications(updated, patient.id);
+    if (!isDemoMode) {
+      localDB.saveMedications(updated);
+    }
   };
 
   const addMedication = (newMed) => {
     const updated = [...medications, { ...newMed, id: 'med-' + Date.now(), taken: false }];
     setMedications(updated);
-    localDB.saveMedications(updated);
-    // Sync to Supabase
-    supabaseService.saveMedications(updated, patient.id);
+    if (!isDemoMode) {
+      localDB.saveMedications(updated);
+    }
   };
 
   const incrementWater = () => {
     const nextCount = Math.min(12, waterCount + 1);
     setWaterCount(nextCount);
-    localDB.saveWaterIntake(nextCount);
+    if (!isDemoMode) localDB.saveWaterIntake(nextCount);
   };
+
+  const saveTodoList = (updatedTodos) => {
+    setTodos(updatedTodos);
+    if (!isDemoMode) localDB.saveTodos(updatedTodos);
+  };
+
+  const addTodo = (todo) => saveTodoList([...todos, { ...todo, id: `todo-${Date.now()}`, completed: false }]);
+  const updateTodo = (id, changes) => saveTodoList(todos.map(todo => todo.id === id ? { ...todo, ...changes } : todo));
+  const deleteTodo = (id) => saveTodoList(todos.filter(todo => todo.id !== id));
 
   const addFamilyMember = (member) => {
     const newRecord = { ...member, id: 'fam-' + Date.now() };
     const updated = [...familyAlbum, newRecord];
     setFamilyAlbum(updated);
-    localDB.saveFamilyAlbum(updated);
-    // Sync to Supabase
-    supabaseService.saveFamilyMember(newRecord, patient.id);
+    if (!isDemoMode) {
+      localDB.saveFamilyAlbum(updated);
+    }
   };
 
   const deleteFamilyMember = (id) => {
     const updated = familyAlbum.filter(f => f.id !== id);
     setFamilyAlbum(updated);
-    localDB.saveFamilyAlbum(updated);
-    // Sync to Supabase
-    supabaseService.deleteFamilyMember(id);
+    if (!isDemoMode) {
+      localDB.saveFamilyAlbum(updated);
+    }
   };
 
   const logGameSession = (sessionData) => {
@@ -169,11 +190,9 @@ export const PatientProvider = ({ children }) => {
       currentLevel: currentDifficulty
     };
 
-    const updated = localDB.addSession(fullSession);
+    const updated = isDemoMode ? [...gameSessions, { ...fullSession, id: `demo-${Date.now()}`, timestamp: Date.now() }] : localDB.addSession(fullSession);
     setGameSessions(updated);
 
-    // Sync session to Supabase
-    supabaseService.saveGameSession(fullSession, patient.id);
 
     // AI Adaptive Difficulty check for next session
     const evaluation = adaptiveEngine.evaluateDifficulty({
@@ -191,9 +210,9 @@ export const PatientProvider = ({ children }) => {
 
   const updatePatientProfile = (updatedProfile) => {
     setPatient(updatedProfile);
-    localDB.savePatient(updatedProfile);
-    // Sync to Supabase
-    supabaseService.savePatient(updatedProfile);
+    if (!isDemoMode) {
+      localDB.savePatient(updatedProfile);
+    }
   };
 
   // Compute live clinical cognitive profile
@@ -203,7 +222,9 @@ export const PatientProvider = ({ children }) => {
     <PatientContext.Provider value={{
       currentUser,
       isLoggedIn,
+      isDemoMode,
       login,
+      enterDemo,
       logout,
       patient,
       updatePatientProfile,
@@ -222,6 +243,10 @@ export const PatientProvider = ({ children }) => {
       deleteFamilyMember,
       waterCount,
       incrementWater,
+      todos,
+      addTodo,
+      updateTodo,
+      deleteTodo,
       gameSessions,
       logGameSession,
       currentDifficulty,
@@ -231,7 +256,6 @@ export const PatientProvider = ({ children }) => {
       setIsVoiceOpen,
       isSosOpen,
       setIsSosOpen,
-      isSupabaseConfigured
     }}>
       {children}
     </PatientContext.Provider>

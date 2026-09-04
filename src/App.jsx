@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { Mic, Home } from 'lucide-react';
+import { Home } from 'lucide-react';
 import { PatientProvider, usePatient } from './context/PatientContext.jsx';
 import { Header } from './components/Header.jsx';
 import { BottomNav } from './components/BottomNav.jsx';
@@ -15,10 +15,11 @@ import { DrawerMenu } from './components/DrawerMenu.jsx';
 import { VoiceAssistantModal } from './components/VoiceAssistantModal.jsx';
 import { DoctorProfileModal } from './components/DoctorProfileModal.jsx';
 import { LoginPage } from './components/LoginPage.jsx';
-import { soundFx } from './utils/audio.js';
+import { PatientProgress } from './components/patient/PatientProgress.jsx';
+import { PatientTodo } from './components/patient/PatientTodo.jsx';
 
 function MainApp() {
-  const { isLoggedIn, login, currentUser } = usePatient();
+  const { isLoggedIn, isDemoMode, login, enterDemo, logout, currentUser } = usePatient();
   const [activeTab, setActiveTab] = useState('home');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
@@ -33,11 +34,6 @@ function MainApp() {
     language: 'as',
   });
 
-  const handleVoiceFabClick = () => {
-    soundFx.playSingingBowl();
-    setIsVoiceOpen(true);
-  };
-
   const getTextClass = () => {
     if (settings.textSize === 'large') return 'text-large';
     if (settings.textSize === 'xlarge') return 'text-xlarge';
@@ -49,7 +45,8 @@ function MainApp() {
       <LoginPage 
         onLoginSuccess={(user, rememberMe) => {
           login(user, rememberMe);
-        }} 
+        }}
+        onTryDemo={enterDemo}
       />
     );
   }
@@ -62,6 +59,12 @@ function MainApp() {
         settings.highContrast ? 'contrast-125' : ''
       }`}
     >
+      {isDemoMode && (
+        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-full bg-amber-100 border-2 border-amber-300 px-4 py-2 text-xs font-black text-amber-950 shadow-lg">
+          <span>Demo Mode</span>
+          <button type="button" onClick={logout} className="underline cursor-pointer">Exit Demo</button>
+        </div>
+      )}
       {/* Sticky Top App Bar */}
       <Header
         activeTab={activeTab}
@@ -105,6 +108,14 @@ function MainApp() {
           <SmartVoiceReminders onBackHome={() => setActiveTab('home')} />
         )}
 
+        {activeTab === 'progress' && (
+          <PatientProgress onBackHome={() => setActiveTab('home')} />
+        )}
+
+        {activeTab === 'todo' && (
+          <PatientTodo onBackHome={() => setActiveTab('home')} />
+        )}
+
         {/* 4. Reminiscence Audio & Guided Breathing */}
         {activeTab === 'calm' && (
           <div className="space-y-4 animate-fade-in max-w-4xl mx-auto">
@@ -139,17 +150,6 @@ function MainApp() {
         )}
 
       </main>
-
-      {/* Floating Voice Microphone Action Button */}
-      <button
-        id="floating-voice-button"
-        onClick={handleVoiceFabClick}
-        aria-label="Activate AI voice assistant companion"
-        className="fixed bottom-[96px] md:bottom-12 right-4 md:right-12 w-[80px] h-[80px] bg-[#f43f5e] text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-[#e11d48] transition-all active:scale-90 duration-200 z-40 cursor-pointer ring-4 ring-[#fda4af]/60 animate-breathe"
-        title="Tap to talk with your Voice Companion"
-      >
-        <Mic className="w-10 h-10" />
-      </button>
 
       {/* Bottom Navigation Bar */}
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />

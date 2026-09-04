@@ -1,4 +1,4 @@
-﻿// Offline-First Local Storage & IndexedDB Synchronization Database
+﻿﻿// Offline-First Local Storage & IndexedDB Synchronization Database
 import { 
   INITIAL_PATIENT_PROFILE, 
   INITIAL_FAMILY_ALBUM, 
@@ -19,6 +19,7 @@ const STORAGE_KEYS = {
   HIGH_CONTRAST: 'smriti_ner_high_contrast',
   AUTH_SESSION: 'smriti_ner_auth_session',
   REMEMBERED_USER: 'smriti_ner_remembered_user'
+  ,TODOS: 'smriti_ner_todos'
 };
 
 class LocalDB {
@@ -168,6 +169,28 @@ class LocalDB {
     }
   }
 
+  getTodos() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.TODOS);
+      return data ? JSON.parse(data) : [
+        { id: 'todo-1', title: 'Take morning medicine', time: '08:30 AM', completed: false },
+        { id: 'todo-2', title: 'Drink water', time: '10:00 AM', completed: false },
+        { id: 'todo-3', title: 'Complete cognitive game', time: '11:00 AM', completed: false },
+        { id: 'todo-4', title: 'Talk to family', time: '06:00 PM', completed: false }
+      ];
+    } catch {
+      return [];
+    }
+  }
+
+  saveTodos(todos) {
+    try {
+      localStorage.setItem(STORAGE_KEYS.TODOS, JSON.stringify(todos));
+    } catch (e) {
+      console.error('Todo save error', e);
+    }
+  }
+
   getLanguage() {
     try {
       return localStorage.getItem(STORAGE_KEYS.LANGUAGE) || 'en';
@@ -202,3 +225,4 @@ class LocalDB {
 }
 
 export const localDB = new LocalDB();
+

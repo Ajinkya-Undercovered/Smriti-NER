@@ -1,340 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import './LoginPage.css';
+import React, { useEffect, useState } from 'react';
+import { ArrowRight, CheckSquare, HeartHandshake, LockKeyhole, Mail, ShieldCheck, Square, Stethoscope, UserRound } from 'lucide-react';
 import { usePatient } from '../context/PatientContext.jsx';
 import { soundFx } from '../utils/audio.js';
 import { speechService } from '../i18n/speechService.js';
 import { DEFAULT_AUTH_USERS } from '../storage/initialData.js';
-import { supabaseService } from '../storage/supabaseService.js';
-import { isSupabaseConfigured } from '../storage/supabaseClient.js';
-import { 
-  Lock, 
-  UserCheck, 
-  Volume2, 
-  Sparkles, 
-  ArrowRight, 
-  ShieldCheck, 
-  KeyRound, 
-  CheckSquare, 
-  Square, 
-  HeartHandshake,
-  Users,
-  Stethoscope,
-  Database,
-  CheckCircle2
-} from 'lucide-react';
+import './LoginPage.css';
 
-export const LoginPage = ({ onLoginSuccess }) => {
-  const { language, t } = usePatient();
-  const [users, setUsers] = useState(DEFAULT_AUTH_USERS);
-  const [activeRoleTab, setActiveRoleTab] = useState('patient'); // 'patient', 'caregiver', 'asha_worker'
-  const [pin, setPin] = useState('');
+const ACCOUNT_KEY = 'smriti_ner_local_accounts';
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ROLES = [
+  { id: 'patient', label: 'Senior Patient', assamese: 'জ্যেষ্ঠ নাগৰিক', icon: UserRound },
+  { id: 'caregiver', label: 'Caregiver', assamese: 'পৰিচৰ্যাকাৰী', icon: HeartHandshake },
+  { id: 'asha_worker', label: 'ASHA Officer', assamese: 'আশা কৰ্মী', icon: Stethoscope }
+];
+
+const getAccounts = () => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(ACCOUNT_KEY) || '[]');
+    const defaults = DEFAULT_AUTH_USERS.map(user => ({ ...user, email: `${user.id}@gmail.com`, password: user.passcode }));
+    return [...defaults, ...(Array.isArray(stored) ? stored : [])];
+  } catch {
+    return DEFAULT_AUTH_USERS.map(user => ({ ...user, email: `${user.id}@gmail.com`, password: user.passcode }));
+  }
+};
+
+const toAppUser = account => ({ ...account, regionalName: account.regionalName || account.name, patientId: account.patientId || account.id, condition: account.condition || 'Local account' });
+
+export const LoginPage = ({ onLoginSuccess, onTryDemo }) => {
+  const { t } = usePatient();
+  const [mode, setMode] = useState('login');
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', role: '', linkedName: '', location: '', cognitiveStatus: '', phc: '', district: '' });
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
-  const [isCloudConnected, setIsCloudConnected] = useState(isSupabaseConfigured);
+  const [statusMsg, setStatusMsg] = useState('');
+  const [showDemoRoles, setShowDemoRoles] = useState(false);
 
-  useEffect(() => {
-    async function loadUsers() {
-      const availableUsers = await supabaseService.getUsers();
-      if (availableUsers && availableUsers.length > 0) {
-        setUsers(availableUsers);
-        setIsCloudConnected(true);
-      }
-    }
-    loadUsers();
+  useEffect(() => { speechService.speakBilingual('স্মৃতি-NER লৈ স্বাগতম। ৰোগীৰ একাউণ্টেৰে লগ ইন কৰক।', 'Welcome to Smriti-NER. Log in or create your account.'); }, []);
+  const updateField = (field, value) => setForm(previous => ({ ...previous, [field]: value }));
+  const selectedRole = ROLES.find(role => role.id === form.role);
 
-    setTimeout(() => {
-      speechService.speakBilingual(
-        'স্মৃতি-NER লৈ স্বাগতম। আপোনাৰ প্ৰফাইল নিৰ্বাচন কৰক।',
-        'Welcome to Smriti-NER. Please select your role to log in.'
-      );
-    }, 400);
-  }, []);
-
-  const currentUserForRole = users.find(u => u.role === activeRoleTab) || users[0];
-
-  const handleRoleTabChange = (role) => {
-    setActiveRoleTab(role);
-    setPin('');
+  const handleSubmit = event => {
+    event.preventDefault();
     setErrorMsg('');
-    soundFx.playCardFlip();
-
-    const u = users.find(user => user.role === role);
-    if (u) {
-      if (role === 'patient') {
-        speechService.speakBilingual('জ্যেষ্ঠ নাগৰিক বিপিন হাজৰিকাৰ একাউণ্ট', 'Patient portal selected');
-      } else if (role === 'caregiver') {
-        speechService.speakBilingual('পৰিয়ালৰ অভিভাৱক অনন্যা হাজৰিকাৰ একাউণ্ট', 'Caregiver portal selected');
-      } else {
-        speechService.speakBilingual('আশা কৰ্মী প্ৰতিমা দাসৰ স্বাস্থ্য পৰ্টেল', 'ASHA health worker portal selected');
-      }
+    setStatusMsg('');
+    const email = form.email.trim().toLowerCase();
+    if (!EMAIL_PATTERN.test(email)) return setErrorMsg('Please enter a valid email address.');
+    if (form.password.length < 8) return setErrorMsg('Password must be at least 8 characters.');
+    if (mode === 'create') {
+      if (!form.name.trim()) return setErrorMsg('Please enter your full name.');
+      if (form.password !== form.confirmPassword) return setErrorMsg('Passwords do not match.');
+      if (!form.role) return setErrorMsg('Please select your role.');
+      if ((form.role === 'patient' || form.role === 'caregiver') && (!form.linkedName.trim() || !form.location.trim())) return setErrorMsg('Please fill in the linked name and village or city.');
+      if (form.role === 'asha_worker' && (!form.phc.trim() || !form.district.trim())) return setErrorMsg('Please enter your PHC and district.');
+      if (getAccounts().some(account => account.email.toLowerCase() === email)) return setErrorMsg('This email is already registered. Please log in.');
+      const account = { id: `local-${Date.now()}`, name: form.name.trim(), regionalName: form.name.trim(), email, password: form.password, passcode: form.password, role: form.role, patientId: `local-patient-${Date.now()}`, linkedName: form.linkedName.trim(), location: form.location.trim(), cognitiveStatus: form.cognitiveStatus.trim(), phc: form.phc.trim(), district: form.district.trim(), avatar: '👤', condition: form.cognitiveStatus.trim() || 'Local account' };
+      const stored = JSON.parse(localStorage.getItem(ACCOUNT_KEY) || '[]');
+      localStorage.setItem(ACCOUNT_KEY, JSON.stringify([...stored, account]));
+      onLoginSuccess(toAppUser(account), rememberMe);
+      return;
     }
+    const account = getAccounts().find(item => item.email.toLowerCase() === email && String(item.password) === form.password);
+    if (!account) return setErrorMsg('Email or password is incorrect. Please try again.');
+    onLoginSuccess(toAppUser(account), rememberMe);
   };
 
-  const handleQuickLogin = (user) => {
-    soundFx.playSingingBowl();
-    soundFx.playMatchSound();
-    onLoginSuccess(user, rememberMe);
-  };
-
-  const handlePinSubmit = (e) => {
-    if (e) e.preventDefault();
-    setErrorMsg('');
-
-    if (String(pin).trim() === String(currentUserForRole.passcode)) {
-      handleQuickLogin(currentUserForRole);
-    } else {
-      setErrorMsg(`Incorrect Passcode. For demo: Patient is 1234, Caregiver is 4321, ASHA is 0000.`);
-      soundFx.playCardFlip();
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-[#fef2f2] via-[#fff1f2] to-[#ffe4e6] flex flex-col items-center justify-center p-4 md:p-8">
-      
-      {/* Container Box */}
-      <div className="max-w-xl w-full bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-10 shadow-2xl border-3 border-rose-200 animate-fade-in space-y-6">
-        
-        {/* Header Branding */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-tr from-rose-500 to-amber-500 text-3xl shadow-md text-white font-bold mb-1 animate-breathe">
-            🌿
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            {t.appTitle || 'Smriti-NER (স্মৃতি)'}
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-600 font-medium max-w-sm mx-auto">
-            North Eastern AI Cognitive & Dementia Care Platform
-          </p>
-
-          {/* Cloud Database Connected Status Badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border border-slate-200 bg-slate-50 text-slate-700">
-            <Database size={13} className={isCloudConnected ? "text-emerald-600" : "text-amber-500"} />
-            <span>{isCloudConnected ? "Supabase Cloud Database Connected (public.users)" : "Local Storage Active"}</span>
-          </div>
-        </div>
-
-        {/* 3 Dedicated Role Selector Tabs */}
-        <div className="grid grid-cols-3 gap-2 p-1.5 bg-rose-50/80 rounded-2xl border border-rose-200">
-          <button
-            onClick={() => handleRoleTabChange('patient')}
-            className={`py-3 px-2 rounded-xl text-xs font-black transition-all flex flex-col items-center gap-1 cursor-pointer ${
-              activeRoleTab === 'patient'
-                ? 'bg-rose-600 text-white shadow-md'
-                : 'text-slate-600 hover:bg-rose-100'
-            }`}
-          >
-            <span className="text-2xl">👴</span>
-            <span>Senior Patient</span>
-            <span className="text-[9px] opacity-80 font-normal">বিপিন হাজৰিকা</span>
-          </button>
-
-          <button
-            onClick={() => handleRoleTabChange('caregiver')}
-            className={`py-3 px-2 rounded-xl text-xs font-black transition-all flex flex-col items-center gap-1 cursor-pointer ${
-              activeRoleTab === 'caregiver'
-                ? 'bg-teal-700 text-white shadow-md'
-                : 'text-slate-600 hover:bg-teal-50'
-            }`}
-          >
-            <span className="text-2xl">👩‍⚕️</span>
-            <span>Caregiver</span>
-            <span className="text-[9px] opacity-80 font-normal">অনন্যা হাজৰিকা</span>
-          </button>
-
-          <button
-            onClick={() => handleRoleTabChange('asha_worker')}
-            className={`py-3 px-2 rounded-xl text-xs font-black transition-all flex flex-col items-center gap-1 cursor-pointer ${
-              activeRoleTab === 'asha_worker'
-                ? 'bg-orange-600 text-white shadow-md'
-                : 'text-slate-600 hover:bg-orange-50'
-            }`}
-          >
-            <span className="text-2xl">🩺</span>
-            <span>ASHA Officer</span>
-            <span className="text-[9px] opacity-80 font-normal">প্ৰতিমা দাস</span>
-          </button>
-        </div>
-
-        {/* Role Content Display */}
-        {activeRoleTab === 'patient' && (
-          /* 1. Senior Patient 1-Tap Fast-Pass */
-          <div className="bg-rose-50/80 border-2 border-rose-200 rounded-3xl p-6 space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-rose-800 flex items-center gap-1.5">
-                <Sparkles size={14} className="text-rose-600" />
-                <span>Zero-Friction Senior Access</span>
-              </span>
-              <span className="text-[10px] font-bold text-rose-700 bg-rose-200 px-2 py-0.5 rounded-full">
-                1-Tap Entry
-              </span>
-            </div>
-
-            <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-rose-200 shadow-xs">
-              <span className="text-5xl p-2 bg-rose-50 rounded-2xl border border-rose-100">👴</span>
-              <div className="flex-1">
-                <h3 className="font-black text-slate-900 text-xl leading-tight">
-                  {currentUserForRole.name}
-                </h3>
-                <p className="text-xs text-rose-800 font-bold">
-                  {currentUserForRole.regionalName}
-                </p>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  {currentUserForRole.location} • Mild Cognitive Impairment
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => handleQuickLogin(currentUserForRole)}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 text-white font-black text-lg shadow-lg flex items-center justify-center gap-2.5 transition-transform active:scale-98 cursor-pointer ring-4 ring-rose-200"
-            >
-              <span>প্ৰৱেশ কৰক (Enter as Bipin)</span>
-              <ArrowRight size={22} />
-            </button>
-          </div>
-        )}
-
-        {activeRoleTab === 'caregiver' && (
-          /* 2. Family Caregiver Login */
-          <div className="bg-teal-50/80 border-2 border-teal-200 rounded-3xl p-6 space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-teal-800 flex items-center gap-1.5">
-                <HeartHandshake size={14} className="text-teal-600" />
-                <span>Caregiver Dashboard Access</span>
-              </span>
-              <span className="text-[10px] font-bold text-teal-700 bg-teal-200 px-2 py-0.5 rounded-full">
-                Ananya Hazarika
-              </span>
-            </div>
-
-            <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-teal-200 shadow-xs">
-              <span className="text-5xl p-2 bg-teal-50 rounded-2xl border border-teal-100">👩‍⚕️</span>
-              <div className="flex-1">
-                <h3 className="font-black text-slate-900 text-xl leading-tight">Ananya Hazarika</h3>
-                <p className="text-xs text-teal-800 font-bold">অনন্যা হাজৰিকা (পৰিয়ালৰ অভিভাৱক)</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">Guwahati, Assam • Patient: Bipin C. Hazarika</p>
-              </div>
-            </div>
-
-            <form onSubmit={handlePinSubmit} className="space-y-3 pt-1">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                <span>Enter Passcode (PIN):</span>
-                <span className="text-slate-400 font-mono">Demo PIN: 4321</span>
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="password"
-                  maxLength={6}
-                  placeholder="PIN: 4321"
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value)}
-                  className="flex-1 p-3 rounded-xl border border-slate-300 font-bold text-center tracking-widest text-lg bg-white focus:ring-2 focus:ring-teal-400"
-                />
-                <button
-                  type="submit"
-                  className="px-6 py-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs cursor-pointer shadow-xs"
-                >
-                  Sign In
-                </button>
-              </div>
-            </form>
-
-            <button
-              onClick={() => handleQuickLogin(currentUserForRole)}
-              className="w-full py-2.5 rounded-xl bg-teal-100 hover:bg-teal-200 text-teal-900 font-bold text-xs flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>1-Tap Fast Pass (অনন্যা হিচাপে প্ৰৱেশ)</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        )}
-
-        {activeRoleTab === 'asha_worker' && (
-          /* 3. ASHA Health Officer Login */
-          <div className="bg-orange-50/80 border-2 border-orange-200 rounded-3xl p-6 space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-orange-900 flex items-center gap-1.5">
-                <Stethoscope size={14} className="text-orange-600" />
-                <span>Primary Health Centre Field Portal</span>
-              </span>
-              <span className="text-[10px] font-bold text-orange-800 bg-orange-200 px-2 py-0.5 rounded-full">
-                Pratima Das
-              </span>
-            </div>
-
-            <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-orange-200 shadow-xs">
-              <span className="text-5xl p-2 bg-orange-50 rounded-2xl border border-orange-100">🩺</span>
-              <div className="flex-1">
-                <h3 className="font-black text-slate-900 text-xl leading-tight">Pratima Das</h3>
-                <p className="text-xs text-orange-800 font-bold">প্ৰতিমা দাস (আশা স্বাস্থ্য কৰ্মী)</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">Tezpur UPHC, Sonitpur District • Health Officer</p>
-              </div>
-            </div>
-
-            <form onSubmit={handlePinSubmit} className="space-y-3 pt-1">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                <span>Enter ASHA Access PIN:</span>
-                <span className="text-slate-400 font-mono">Demo PIN: 0000</span>
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="password"
-                  maxLength={6}
-                  placeholder="PIN: 0000"
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value)}
-                  className="flex-1 p-3 rounded-xl border border-slate-300 font-bold text-center tracking-widest text-lg bg-white focus:ring-2 focus:ring-orange-400"
-                />
-                <button
-                  type="submit"
-                  className="px-6 py-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs cursor-pointer shadow-xs"
-                >
-                  Verify
-                </button>
-              </div>
-            </form>
-
-            <button
-              onClick={() => handleQuickLogin(currentUserForRole)}
-              className="w-full py-2.5 rounded-xl bg-orange-100 hover:bg-orange-200 text-orange-950 font-bold text-xs flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>1-Tap Fast Pass (প্ৰতিমা দাসৰ পৰ্টেল)</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        )}
-
-        {errorMsg && (
-          <p className="text-xs font-bold text-rose-600 bg-rose-50 p-2.5 rounded-xl border border-rose-200 text-center animate-shake">
-            {errorMsg}
-          </p>
-        )}
-
-        {/* Remember Credentials Toggle */}
-        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-          <label 
-            onClick={() => setRememberMe(!rememberMe)}
-            className="flex items-center gap-2 cursor-pointer font-medium select-none"
-          >
-            {rememberMe ? (
-              <CheckSquare size={18} className="text-rose-600" />
-            ) : (
-              <Square size={18} className="text-slate-400" />
-            )}
-            <span>Remember session on this device</span>
-          </label>
-
-          <span className="text-[11px] text-slate-400">PostgreSQL RLS Protected</span>
-        </div>
-
-      </div>
-
-      {/* Footer */}
-      <div className="text-center mt-6 text-[11px] text-slate-500 space-y-1">
-        <p>Smriti-NER • Integrated Dementia Care for Patients, Caregivers & ASHA Workers</p>
-        <p className="text-[10px] text-slate-400">Tezpur • Guwahati • Imphal • Shillong • Aizawl • Kohima • Agartala • Gangtok</p>
-      </div>
-
-    </div>
-  );
+  return <main className="min-h-screen bg-linear-to-b from-[#fef2f2] via-[#fff1f2] to-[#ffe4e6] flex items-center justify-center p-4 md:p-8"><section className="max-w-xl w-full bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-10 shadow-2xl border-3 border-rose-200 animate-fade-in"><header className="text-center space-y-2 mb-7"><div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-linear-to-tr from-rose-500 to-amber-500 text-white mb-1 animate-breathe"><ShieldCheck size={32} /></div><h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{t.appTitle || 'Smriti-NER (স্মৃতি)'}</h1><p className="text-sm text-slate-600 font-medium">North Eastern AI Cognitive & Dementia Care Platform</p></header><div className="flex items-center gap-2 bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-5 text-xs font-black text-rose-800"><ShieldCheck size={18} /> Local authentication mode</div><div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-2xl mb-6">{['login', 'create'].map(tab => <button key={tab} type="button" onClick={() => { setMode(tab); setErrorMsg(''); setStatusMsg(''); }} className={`py-3 rounded-xl text-sm font-black cursor-pointer ${mode === tab ? 'bg-white text-rose-700 shadow-sm' : 'text-slate-500'}`}>{tab === 'login' ? 'Log In' : 'Create Account'}</button>)}</div>{statusMsg ? <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-5 text-center text-emerald-900 font-bold">{statusMsg}</div> : <form onSubmit={handleSubmit} className="space-y-4">{mode === 'create' && <Field icon={<UserRound size={18} />} label="Full Name" value={form.name} onChange={value => updateField('name', value)} placeholder="Enter your full name" />}<Field icon={<Mail size={18} />} label="Email" type="email" value={form.email} onChange={value => updateField('email', value)} placeholder="name@gmail.com" /><Field icon={<LockKeyhole size={18} />} label="Password" type="password" value={form.password} onChange={value => updateField('password', value)} placeholder="At least 8 characters" />{mode === 'create' && <><Field icon={<LockKeyhole size={18} />} label="Confirm Password" type="password" value={form.confirmPassword} onChange={value => updateField('confirmPassword', value)} placeholder="Repeat your password" /><fieldset><legend className="text-sm font-bold text-slate-700 mb-2">Choose your role</legend><div className="grid grid-cols-3 gap-2">{ROLES.map(role => { const RoleIcon = role.icon; return <button type="button" key={role.id} onClick={() => updateField('role', role.id)} className={`p-3 rounded-xl border-2 text-xs font-black cursor-pointer ${form.role === role.id ? 'border-rose-500 bg-rose-50 text-rose-800' : 'border-slate-200 text-slate-600'}`}><span className="block text-2xl mb-1"><RoleIcon size={28} /></span>{role.label}<span className="block text-[10px] font-normal mt-1">{role.assamese}</span></button>; })}</div></fieldset>{(form.role === 'patient' || form.role === 'caregiver') && <div className="grid sm:grid-cols-2 gap-3"><Field label={form.role === 'patient' ? 'Caregiver Name' : 'Linked Patient Name'} value={form.linkedName} onChange={value => updateField('linkedName', value)} placeholder="Full name" /><Field label="Village / City" value={form.location} onChange={value => updateField('location', value)} placeholder="Tezpur, Assam" /></div>}{form.role === 'patient' && <Field label="Cognitive Status (optional)" value={form.cognitiveStatus} onChange={value => updateField('cognitiveStatus', value)} placeholder="For example, MCI" />}{form.role === 'asha_worker' && <div className="grid sm:grid-cols-2 gap-3"><Field label="PHC / Health Centre" value={form.phc} onChange={value => updateField('phc', value)} placeholder="Primary Health Centre" /><Field label="District" value={form.district} onChange={value => updateField('district', value)} placeholder="Sonitpur" /></div>}</>}{errorMsg && <p role="alert" className="text-sm font-bold text-rose-700 bg-rose-50 p-3 rounded-xl border border-rose-200 text-center">{errorMsg}</p>}<button type="submit" className="w-full py-4 rounded-2xl bg-linear-to-r from-rose-500 to-rose-600 text-white font-black text-lg shadow-lg flex items-center justify-center gap-2.5 cursor-pointer">{mode === 'login' ? 'Log In' : `Create ${selectedRole ? selectedRole.label : ''} Account`}<ArrowRight size={22} /></button></form>}<label onClick={() => setRememberMe(value => !value)} className="mt-5 flex items-center gap-2 cursor-pointer font-medium text-xs text-slate-600 select-none">{rememberMe ? <CheckSquare size={18} className="text-rose-600" /> : <Square size={18} className="text-slate-400" />}Remember session on this device</label><button type="button" onClick={() => setShowDemoRoles(true)} className="w-full mt-4 py-3 rounded-2xl border-2 border-rose-200 bg-rose-50 text-rose-800 font-black cursor-pointer hover:bg-rose-100">Try Demo / Continue as Demo</button></section>{showDemoRoles && <div className="fixed inset-0 z-50 bg-slate-950/40 flex items-center justify-center p-4" role="dialog" aria-modal="true"><section className="max-w-xl w-full bg-white rounded-3xl p-6 shadow-2xl"><div className="flex justify-between mb-5"><div><h2 className="text-2xl font-black text-slate-900">Choose Demo Role</h2><p className="text-sm text-slate-500">Explore sample data without an account.</p></div><button type="button" onClick={() => setShowDemoRoles(false)} aria-label="Back to login" className="text-xl font-black cursor-pointer">×</button></div><div className="space-y-3">{ROLES.map(role => { const RoleIcon = role.icon; return <button type="button" key={role.id} onClick={() => { setShowDemoRoles(false); onTryDemo(role.id); }} className="w-full flex items-center gap-4 text-left p-4 rounded-2xl border-2 border-slate-200 hover:border-rose-400 cursor-pointer"><RoleIcon size={32} className="text-teal-700" /><span className="flex-1"><strong className="block text-base font-black text-slate-900">Demo {role.id === 'asha_worker' ? 'Officer' : role.label}</strong><span className="block text-xs text-slate-500 mt-1">Sample {role.label.toLowerCase()} dashboard data.</span></span><ArrowRight size={20} /></button>; })}</div><button type="button" onClick={() => setShowDemoRoles(false)} className="w-full mt-5 py-3 rounded-2xl border border-slate-200 font-bold cursor-pointer">Back to Login</button></section></div>}</main>;
 };
+
+const Field = ({ icon, label, type = 'text', value, onChange, placeholder }) => <label className="block"><span className="text-sm font-bold text-slate-700">{label}</span><span className="mt-1 flex items-center gap-3 border border-slate-300 rounded-xl px-3 bg-white focus-within:ring-2 focus-within:ring-rose-300">{icon}<input required={label !== 'Cognitive Status (optional)'} type={type} value={value} onChange={event => onChange(event.target.value)} className="w-full py-3 outline-none font-medium" placeholder={placeholder} /></span></label>;
