@@ -1,5 +1,5 @@
-﻿// Smriti-NER Progressive Web App Service Worker (Offline-First Engine v3)
-const CACHE_NAME = 'smriti-ner-v3';
+﻿// Smriti-NER Progressive Web App Service Worker (Ultra-Fast Offline Engine v4)
+const CACHE_NAME = 'smriti-ner-v4';
 
 const CORE_SHELL_ASSETS = [
   '/',
@@ -9,13 +9,20 @@ const CORE_SHELL_ASSETS = [
   '/icons.svg'
 ];
 
-// 1. Install Event: Pre-cache static application shell
+// 1. Install Event: Pre-cache static application shell individually
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(CORE_SHELL_ASSETS).catch((err) => {
-        console.warn('Pre-caching non-fatal warning:', err);
-      });
+    caches.open(CACHE_NAME).then(async (cache) => {
+      for (const asset of CORE_SHELL_ASSETS) {
+        try {
+          const res = await fetch(asset);
+          if (res && res.status === 200) {
+            await cache.put(asset, res);
+          }
+        } catch (e) {
+          console.warn('Pre-cache skip:', asset);
+        }
+      }
     }).then(() => self.skipWaiting())
   );
 });
@@ -23,20 +30,23 @@ self.addEventListener('install', (event) => {
 // 2. Activate Event: Clean up legacy caches & take immediate control
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log('Purging legacy cache:', key);
-            return caches.delete(key);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    Promise.all([
+      caches.keys().then((keys) => {
+        return Promise.all(
+          keys.map((key) => {
+            if (key !== CACHE_NAME) {
+              console.log('Purging legacy cache:', key);
+              return caches.delete(key);
+            }
+          })
+        );
+      }),
+      self.clients.claim()
+    ])
   );
 });
 
-// 3. Fetch Event: Dual Online/Offline Cache-First & Network Fallback Strategy
+// 3. Fetch Event: Instant Zero-Latency Offline Serving
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -49,65 +59,67 @@ self.addEventListener('fetch', (event) => {
   // Strategy A: Navigation requests (User opening or refreshing the app)
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then((networkResponse) => {
+      (async () => {
+        // If device is offline, return cached index.html immediately!
+        if (!navigator.onLine) {
+          const cached = (await caches.match('/index.html')) || (await caches.match('/'));
+          if (cached) return cached;
+        }
+
+        try {
+          // Try network when online
+          const networkResponse = await fetch(request);
           if (networkResponse && networkResponse.status === 200) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
+            const clone = networkResponse.clone();
+            const cache = await caches.open(CACHE_NAME);
+            cache.put('/index.html', clone.clone());
+            cache.put('/', clone);
           }
           return networkResponse;
-        })
-        .catch(() => {
-          // Offline fallback: serve cached index.html immediately!
-          return caches.match('/index.html')
-            .then((cached) => cached || caches.match('/'))
-            .then((res) => {
-              if (res) return res;
-              // Fallback: match any cached html
-              return caches.open(CACHE_NAME).then((cache) => {
-                return cache.keys().then((keys) => {
-                  const htmlKey = keys.find((k) => k.url.includes('index.html') || k.url.endsWith('/'));
-                  return htmlKey ? cache.match(htmlKey) : null;
-                });
-              });
-            });
-        })
+        } catch (err) {
+          // Network failed (offline fallback)
+          const cached = (await caches.match('/index.html')) || (await caches.match('/'));
+          if (cached) return cached;
+          throw err;
+        }
+      })()
     );
     return;
   }
 
-  // Strategy B: Static Bundles & Assets (JS, CSS, SVGs, Fonts, Images)
-  // Cache-First: Return from cache immediately!
+  // Strategy B: All other assets (JS bundles, CSS, SVGs, Fonts, Images)
   event.respondWith(
-    caches.match(request, { ignoreSearch: true }).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Return cached version instantly. In background, refresh cache if online.
+    (async () => {
+      // 1. Check cache first
+      const cached = await caches.match(request, { ignoreSearch: true });
+      if (cached) {
+        // Return cached asset immediately. Revalidate in background if online.
         if (navigator.onLine) {
-          fetch(request)
-            .then((networkResponse) => {
-              if (networkResponse && networkResponse.status === 200) {
-                caches.open(CACHE_NAME).then((cache) => cache.put(request, networkResponse));
-              }
-            })
-            .catch(() => {});
+          fetch(request).then(async (res) => {
+            if (res && res.status === 200) {
+              const cache = await caches.open(CACHE_NAME);
+              cache.put(request, res);
+            }
+          }).catch(() => {});
         }
-        return cachedResponse;
+        return cached;
       }
 
-      // Not in cache yet: Fetch from network and save to cache for subsequent offline loads
-      return fetch(request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
-          }
-          return networkResponse;
-        })
-        .catch((fetchErr) => {
-          console.warn('Network request failed in offline mode:', request.url);
-          // Return any close cache match if available
-          return caches.match(request);
-        });
-    })
+      // 2. Not in cache yet: Fetch from network and save to cache
+      try {
+        const response = await fetch(request);
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(request, clone);
+        }
+        return response;
+      } catch (err) {
+        // If network failed and not found, try fuzzy match
+        const fallback = await caches.match(request);
+        if (fallback) return fallback;
+        throw err;
+      }
+    })()
   );
 });
