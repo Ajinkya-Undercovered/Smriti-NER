@@ -1,7 +1,7 @@
-﻿// Smriti-NER Progressive Web App Service Worker (Offline-First Engine)
-const CACHE_NAME = 'smriti-ner-v2';
+﻿// Smriti-NER Progressive Web App Service Worker (Offline-First Engine v3)
+const CACHE_NAME = 'smriti-ner-v3';
 
-const PRECACHE_ASSETS = [
+const CORE_SHELL_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
@@ -13,7 +13,7 @@ const PRECACHE_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS).catch((err) => {
+      return cache.addAll(CORE_SHELL_ASSETS).catch((err) => {
         console.warn('Pre-caching non-fatal warning:', err);
       });
     }).then(() => self.skipWaiting())
@@ -27,6 +27,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
+            console.log('Purging legacy cache:', key);
             return caches.delete(key);
           }
         })
@@ -35,7 +36,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Fetch Event: Intercept network requests with Dual Online/Offline Caching Strategy
+// 3. Fetch Event: Dual Online/Offline Cache-First & Network Fallback Strategy
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -45,8 +46,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Strategy A: Navigation requests (HTML SPA shell)
-  // Network-First with Cache Fallback (so app opens offline even with zero signal)
+  // Strategy A: Navigation requests (User opening or refreshing the app)
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -58,61 +58,56 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         })
         .catch(() => {
-          return caches.match('/index.html').then((cachedIndex) => {
-            return cachedIndex || caches.match('/');
-          });
+          // Offline fallback: serve cached index.html immediately!
+          return caches.match('/index.html')
+            .then((cached) => cached || caches.match('/'))
+            .then((res) => {
+              if (res) return res;
+              // Fallback: match any cached html
+              return caches.open(CACHE_NAME).then((cache) => {
+                return cache.keys().then((keys) => {
+                  const htmlKey = keys.find((k) => k.url.includes('index.html') || k.url.endsWith('/'));
+                  return htmlKey ? cache.match(htmlKey) : null;
+                });
+              });
+            });
         })
     );
     return;
   }
 
-  // Strategy B: Static Assets (JS, CSS, SVGs, Fonts, Images)
-  // Cache-First with Background Revalidation
-  const isStaticAsset =
-    url.pathname.startsWith('/assets/') ||
-    url.pathname.endsWith('.js') ||
-    url.pathname.endsWith('.css') ||
-    url.pathname.endsWith('.svg') ||
-    url.pathname.endsWith('.png') ||
-    url.pathname.endsWith('.jpg') ||
-    url.hostname.includes('fonts.googleapis.com') ||
-    url.hostname.includes('fonts.gstatic.com') ||
-    url.hostname.includes('images.unsplash.com');
-
-  if (isStaticAsset) {
-    event.respondWith(
-      caches.match(request).then((cachedResponse) => {
-        if (cachedResponse) {
-          // Fetch updated version in background to keep cache fresh
+  // Strategy B: Static Bundles & Assets (JS, CSS, SVGs, Fonts, Images)
+  // Cache-First: Return from cache immediately!
+  event.respondWith(
+    caches.match(request, { ignoreSearch: true }).then((cachedResponse) => {
+      if (cachedResponse) {
+        // Return cached version instantly. In background, refresh cache if online.
+        if (navigator.onLine) {
           fetch(request)
             .then((networkResponse) => {
               if (networkResponse && networkResponse.status === 200) {
                 caches.open(CACHE_NAME).then((cache) => cache.put(request, networkResponse));
               }
             })
-            .catch(() => {/* Ignore background fetch failure when offline */});
-          return cachedResponse;
+            .catch(() => {});
         }
+        return cachedResponse;
+      }
 
-        // If not in cache, fetch from network and cache it
-        return fetch(request)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              const responseClone = networkResponse.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
-            }
-            return networkResponse;
-          })
-          .catch((err) => {
-            console.warn('Offline asset request fallback', err);
-          });
-      })
-    );
-    return;
-  }
-
-  // Strategy C: Generic requests
-  event.respondWith(
-    fetch(request).catch(() => caches.match(request))
+      // Not in cache yet: Fetch from network and save to cache for subsequent offline loads
+      return fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
+          }
+          return networkResponse;
+        })
+        .catch((fetchErr) => {
+          console.warn('Network request failed in offline mode:', request.url);
+          // Return any close cache match if available
+          return caches.match(request);
+        });
+    })
   );
 });
