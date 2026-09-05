@@ -34,8 +34,12 @@ export const CaregiverDashboard = ({ onLaunchPatientMode, onNavigateTab }) => {
     waterCount = 0, 
     familyAlbum = [], 
     addFamilyMember, 
-    gameSessions = [] 
+    gameSessions = [],
+    currentUser
   } = usePatient();
+
+  const caregiverName = currentUser?.role === 'caregiver' ? (currentUser.name || 'Caregiver') : (patient?.caregiverName || 'Caregiver');
+  const monitoredSeniorName = currentUser?.linkedName || patient?.name || 'Bipin Chandra Hazarika';
 
   const [showAddMed, setShowAddMed] = useState(false);
   const [newMed, setNewMed] = useState({ name: '', dosage: '', timing: 'morning', timeString: '09:00 AM', instructions: '' });
@@ -111,13 +115,13 @@ export const CaregiverDashboard = ({ onLaunchPatientMode, onNavigateTab }) => {
         <div className="space-y-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold mb-1">
             <HeartHandshake size={15} />
-            <span>Primary Family Caregiver Command Center • Ananya Hazarika</span>
+            <span>Primary Family Caregiver Command Center • {caregiverName}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black">
             Caregiver Oversight Portal (অভিভাৱক পৰ্টেল)
           </h2>
           <p className="text-xs sm:text-sm text-teal-100 max-w-xl">
-            Monitoring daily routine, medication compliance, reminiscence therapy, and behavioral well-being for {patient?.name || 'Bipin Chandra Hazarika'}.
+            Monitoring daily routine, medication compliance, reminiscence therapy, and behavioral well-being for {monitoredSeniorName}.
           </p>
         </div>
 
@@ -139,7 +143,7 @@ export const CaregiverDashboard = ({ onLaunchPatientMode, onNavigateTab }) => {
           <span className="text-4xl p-2.5 bg-teal-50 rounded-2xl border border-teal-100">👴</span>
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase">Monitored Senior</span>
-            <h4 className="font-black text-slate-900 text-base leading-tight">{patient?.name || 'Bipin Chandra Hazarika'}</h4>
+            <h4 className="font-black text-slate-900 text-base leading-tight">{monitoredSeniorName}</h4>
             <p className="text-xs text-teal-700 font-bold">{patient?.condition || 'MCI Stage 2'}</p>
           </div>
         </div>

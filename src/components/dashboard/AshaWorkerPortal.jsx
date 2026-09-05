@@ -23,7 +23,9 @@ import {
 } from 'lucide-react';
 
 export const AshaWorkerPortal = ({ onLaunchPatientMode, onNavigateClinical }) => {
-  const { patient, gameSessions, medications, familyAlbum } = usePatient();
+  const { patient, gameSessions, medications, familyAlbum, currentUser } = usePatient();
+  const ashaName = currentUser?.role === 'asha_worker' ? (currentUser.name || 'ASHA Officer') : (patient?.ashaWorkerName || 'Pratima Das');
+  const monitoredSeniorName = currentUser?.linkedName || patient?.name || 'Bipin Chandra Hazarika';
 
   // Rapid 5-Item Digital Rural Cognitive Screening
   const [screeningAnswers, setScreeningAnswers] = useState({
@@ -93,7 +95,7 @@ export const AshaWorkerPortal = ({ onLaunchPatientMode, onNavigateClinical }) =>
         <div className="space-y-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold mb-1">
             <Stethoscope size={15} />
-            <span>Community Health Field Portal • ASHA Officer Pratima Das</span>
+            <span>Community Health Field Portal • ASHA Officer {ashaName}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black">
             ASHA Cognitive Screening & Field Portal (আশা পৰ্টেল)

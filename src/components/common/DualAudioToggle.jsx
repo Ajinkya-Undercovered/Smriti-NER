@@ -12,7 +12,7 @@ export const DualAudioToggle = () => {
     soundFx.playCardFlip();
 
     if (mode === 'as') {
-      speechService.speakBilingual('মাতৃভাষা অসমীয়াত ধ্বনি সক্ৰিয় হ’ল', 'Assamese audio guidance activated');
+      speechService.speak('মাতৃভাষা অসমীয়াত ধ্বনি সক্ৰিয় হ’ল। নমস্কাৰ!', 'as');
     } else if (mode === 'en') {
       speechService.speak('English audio guidance activated', 'en');
     } else {

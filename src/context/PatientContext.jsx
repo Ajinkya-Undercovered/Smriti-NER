@@ -60,35 +60,55 @@ export const PatientProvider = ({ children }) => {
     setCurrentUser(user);
     setIsLoggedIn(true);
     setIsDemoMode(false);
+
+    // Sync patient profile with logged-in user so the name displays everywhere!
+    const updatedPatient = {
+      ...patient,
+      id: user.patientId || user.id || patient.id,
+      name: user.role === 'patient' ? (user.name || patient.name) : (user.linkedName || patient.name),
+      regionalName: user.role === 'patient' ? (user.regionalName || user.name || patient.regionalName) : patient.regionalName,
+      location: user.location || patient.location,
+      condition: user.condition || user.cognitiveStatus || patient.condition,
+      caregiverName: user.role === 'caregiver' ? user.name : (user.linkedName || patient.caregiverName),
+      ashaWorkerName: user.role === 'asha_worker' ? user.name : patient.ashaWorkerName
+    };
+    setPatient(updatedPatient);
+    localDB.savePatient(updatedPatient);
+
     if (rememberMe) {
       localDB.saveAuthSession(user);
     }
     localDB.saveRememberedUser(user);
   };
 
-  const enterDemo = (role = 'patient') => {
+  const enterDemo = (role = 'patient', customName = '') => {
+    const trimmedName = customName && typeof customName === 'string' && customName.trim() ? customName.trim() : null;
+    const defaultName = role === 'caregiver' ? 'Ananya Hazarika' : role === 'asha_worker' ? 'Pratima Das' : 'Bipin Chandra Hazarika';
+    const effectiveName = trimmedName || defaultName;
+
     const demoPatient = {
       ...INITIAL_PATIENT_PROFILE,
       id: 'demo-patient',
-      name: 'Demo Patient',
-      regionalName: 'ডেমো ৰোগী',
+      name: role === 'patient' ? effectiveName : 'Bipin Chandra Hazarika',
+      regionalName: role === 'patient' ? effectiveName : 'বিপিন চন্দ্ৰ হাজৰিকা',
       location: 'Tezpur, Assam',
-      condition: 'Demo data only',
-      caregiverName: 'Demo Caregiver',
+      condition: 'Mild Cognitive Impairment (MCI)',
+      caregiverName: role === 'caregiver' ? effectiveName : 'Ananya Hazarika',
       caregiverPhone: '+91 90000 00000',
-      ashaWorkerName: 'Demo ASHA Officer',
+      ashaWorkerName: role === 'asha_worker' ? effectiveName : 'Pratima Das',
       ashaPhone: '+91 90000 00001'
     };
-    setCurrentUser({
+    const demoUser = {
       id: 'demo-patient',
-      name: role === 'caregiver' ? 'Demo Caregiver' : role === 'asha_worker' ? 'Demo Officer' : 'Demo Patient',
-      regionalName: role === 'caregiver' ? 'ডেমো পৰিচৰ্যাকাৰী' : role === 'asha_worker' ? 'ডেমো আশা কৰ্মী' : 'ডেমো ৰোগী',
+      name: effectiveName,
+      regionalName: effectiveName,
       role,
       patientId: 'demo-patient',
-      avatar: '👴',
+      avatar: role === 'caregiver' ? '👩‍⚕️' : role === 'asha_worker' ? '🩺' : '👴',
       location: 'Tezpur, Assam',
-      condition: 'Demo data only'
-    });
+      condition: 'Active Account'
+    };
+    setCurrentUser(demoUser);
     setPatient(demoPatient);
     setMedications(INITIAL_MEDICATIONS);
     setRoutines(INITIAL_DAILY_ROUTINES);

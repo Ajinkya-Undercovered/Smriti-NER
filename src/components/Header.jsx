@@ -50,7 +50,7 @@ export const Header = ({ activeTab, setActiveTab, onOpenDrawer, onDoctorClick })
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-medium hidden sm:block">
-                {currentUser?.name || patient.name} • {patient.location}
+                {currentUser?.name || patient?.name} • {currentUser?.location || patient?.location}
               </p>
             </div>
           </div>

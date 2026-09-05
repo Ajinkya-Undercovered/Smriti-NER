@@ -1,10 +1,12 @@
-﻿// Ultra-Fluent Natural Multilingual Speech Synthesis Engine
+// Ultra-Fluent Natural Multilingual Speech Synthesis Engine
+import { transliterateAssameseToPhonetic } from './assamesePhonetics.js';
+
 class SpeechService {
   constructor() {
     this.synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
-    this.audioLanguageMode = (typeof localStorage !== 'undefined' && localStorage.getItem('smriti_ner_audio_mode')) || 'en';
-    this.currentLang = 'en';
-    this.voiceSpeed = 0.90; // Natural, crisp conversational pace for clarity
+    this.audioLanguageMode = (typeof localStorage !== 'undefined' && localStorage.getItem('smriti_ner_audio_mode')) || 'as';
+    this.currentLang = 'as';
+    this.voiceSpeed = 0.88; // Gentle, clear elderly-friendly pace
     this.selectedVoiceURI = (typeof localStorage !== 'undefined' && localStorage.getItem('smriti_ner_browser_voice')) || '';
     this.voices = [];
     this.activeUtterance = null;
@@ -45,6 +47,7 @@ class SpeechService {
 
   setAudioLanguageMode(mode) {
     this.audioLanguageMode = mode;
+    this.currentLang = mode === 'en' ? 'en' : 'as';
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('smriti_ner_audio_mode', mode);
     }
@@ -65,15 +68,14 @@ class SpeechService {
   cleanTextForSpeech(text) {
     if (!text) return '';
     return String(text)
-      .replace(/\(.*?\)/g, ' ') // Remove brackets
-      .replace(/[•★✓➔🌿💊💧🩺🌸🎮👁️🍃⏳🥁👘🎵🕊️🪈🔔🌊🔴🟢🔵🟡]/g, ' ')
+      .replace(/\(.*?\)/g, ' ') // Remove parenthetical notes
+      .replace(/[•★✓➔🌿💊💧🩺🌸🎮👁️🍃⏳🥁👘🎵🕊️🪈🔔🌊🔴🟢🔵🟡👴👵👩‍⚕️📋]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
   }
 
   hasIndicCharacters(text) {
     if (!text) return false;
-    // Checks for Assamese/Bengali (\u0980-\u09FF) or Devanagari (\u0900-\u097F)
     return /[\u0980-\u09FF\u0900-\u097F]/.test(text);
   }
 
@@ -86,15 +88,19 @@ class SpeechService {
       l.startsWith('bn') ||
       l.startsWith('hi') ||
       n.includes('bengali') ||
+      n.includes('assamese') ||
       n.includes('hindi') ||
       n.includes('swara') ||
       n.includes('madhur') ||
+      n.includes('hemant') ||
+      n.includes('kalpana') ||
+      n.includes('neerja') ||
       n.includes('বাংলা') ||
       n.includes('हिन्दी')
     );
   }
 
-  getBestVoice(lang = 'en') {
+  getBestVoice(lang = 'as') {
     const all = this.getAvailableVoices();
     if (all.length === 0) return null;
 
@@ -107,10 +113,13 @@ class SpeechService {
       const regionalPreferred = [
         'Google বাংলা',
         'Google हिन्दी',
-        'Microsoft Swara Online (Natural)',
-        'Microsoft Madhur Online (Natural)',
-        'Microsoft Neerja Online (Natural)',
+        'Microsoft Swara Online (Natural) - Hindi (India)',
+        'Microsoft Madhur Online (Natural) - Hindi (India)',
+        'Microsoft Neerja Online (Natural) - Hindi (India)',
+        'Microsoft Hemant',
+        'Microsoft Kalpana',
         'bn-IN',
+        'as-IN',
         'hi-IN'
       ];
 
@@ -118,20 +127,27 @@ class SpeechService {
         const found = all.find(v => v.name.includes(name) || v.lang === name);
         if (found) return found;
       }
+
       const genericIndic = all.find(v => this.isIndicVoice(v));
       if (genericIndic) return genericIndic;
+
+      // If no native Indic voice, prefer Indian English voice which understands Indian phonetics!
+      const indianEnglish = all.find(v => 
+        (v.lang || '').toLowerCase() === 'en-in' || 
+        (v.name || '').toLowerCase().includes('india')
+      );
+      if (indianEnglish) return indianEnglish;
     }
 
     // Default English preferred voices
     const preferred = [
       'Microsoft Sonia Online (Natural) - English (India)',
-      'Microsoft Neerja Online (Natural) - Hindi (India)',
+      'en-IN',
       'Google UK English Female',
       'Google US English',
       'Microsoft Natural',
       'Samantha',
       'Karen',
-      'en-IN',
       'en-GB',
       'en-US'
     ];
@@ -140,13 +156,14 @@ class SpeechService {
       const found = all.find(v => v.name.includes(name) || v.lang === name);
       if (found) return found;
     }
+
     return all.find(v => v.lang.startsWith('en')) || all[0];
   }
 
   async speak(text, lang = this.currentLang, onEnd = null) {
     if (!text || !this.synth) return;
 
-    // Wake up synth if paused in Chromium
+    // Wake up synth if paused in Chromium/Edge
     if (this.synth.paused) {
       this.synth.resume();
     }
@@ -159,11 +176,22 @@ class SpeechService {
 
     let selectedVoice = this.getBestVoice(lang);
     let targetText = cleanedText;
+    let targetLang = lang === 'as' ? 'bn-IN' : (lang === 'hi' ? 'hi-IN' : 'en-US');
 
-    // If text is Indic (Assamese/Bengali) but the voice is English-only,
-    // Latin voices output complete silence on Windows. Provide safe fallback message if needed.
-    if (this.hasIndicCharacters(cleanedText) && (!selectedVoice || !this.isIndicVoice(selectedVoice))) {
-      selectedVoice = this.getBestVoice('en');
+    // Assamese Handling:
+    // 1. If we have a native Indic voice (as, bn, hi), speak native script.
+    // 2. If the only available voices are English, transliterate to phonetic Assamese so the voice speaks Assamese words!
+    if (lang === 'as' || this.hasIndicCharacters(cleanedText)) {
+      if (selectedVoice && this.isIndicVoice(selectedVoice)) {
+        targetText = cleanedText;
+        targetLang = selectedVoice.lang || 'bn-IN';
+      } else {
+        targetText = transliterateAssameseToPhonetic(cleanedText);
+        targetLang = selectedVoice?.lang || 'en-IN';
+      }
+    } else {
+      targetText = cleanedText;
+      targetLang = selectedVoice?.lang || 'en-US';
     }
 
     setTimeout(() => {
@@ -175,8 +203,8 @@ class SpeechService {
 
         if (selectedVoice) {
           utterance.voice = selectedVoice;
-          utterance.lang = selectedVoice.lang || 'en-US';
         }
+        utterance.lang = targetLang;
 
         utterance.onend = () => {
           this.activeUtterance = null;
@@ -201,21 +229,20 @@ class SpeechService {
   }
 
   speakBilingual(assameseText, englishText, onEnd = null) {
-    const all = this.getAvailableVoices();
-    const hasNativeIndic = all.some(v => this.isIndicVoice(v));
     const mode = this.audioLanguageMode;
 
-    if (mode === 'as' && hasNativeIndic) {
+    if (mode === 'as') {
+      // In Assamese mode, ALWAYS speak Assamese!
       this.speak(assameseText || englishText, 'as', onEnd);
-    } else if (mode === 'dual' && hasNativeIndic && assameseText && englishText) {
+    } else if (mode === 'dual' && assameseText && englishText) {
+      // In Dual mode, speak Assamese first, then English!
       this.speak(assameseText, 'as', () => {
         setTimeout(() => {
           this.speak(englishText, 'en', onEnd);
-        }, 400);
+        }, 350);
       });
     } else {
-      // If mode is 'en', OR system only has English voice installed:
-      // Always speak English so the user gets loud, crystal-clear audio instead of silence!
+      // In English mode
       this.speak(englishText || assameseText, 'en', onEnd);
     }
   }

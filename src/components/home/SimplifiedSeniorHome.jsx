@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { usePatient } from '../../context/PatientContext.jsx';
 import { speechService } from '../../i18n/speechService.js';
 import { soundFx } from '../../utils/audio.js';
@@ -19,7 +19,11 @@ import {
 } from 'lucide-react';
 
 export const SimplifiedSeniorHome = ({ onNavigate, onOpenVoice }) => {
-  const { patient, medications, waterCount } = usePatient();
+  const { patient, medications, waterCount, currentUser } = usePatient();
+
+  const displayName = currentUser?.name || patient?.name || 'Bipin Chandra Hazarika';
+  const displayRegionalName = currentUser?.regionalName || currentUser?.name || patient?.regionalName || 'বিপিন চন্দ্ৰ হাজৰিকা';
+  const displayLocation = currentUser?.location || patient?.location || 'Tezpur, Assam';
 
   const todayDateStr = new Date().toLocaleDateString(undefined, { 
     weekday: 'long', 
@@ -33,12 +37,12 @@ export const SimplifiedSeniorHome = ({ onNavigate, onOpenVoice }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       speechService.speakBilingual(
-        `নমস্কাৰ ${patient.name}! আজি আপুনি কি কৰিব বিচাৰে? খেল খেলক বা ঔষধ চাওক।`,
-        `Hello ${patient.name}! What would you like to do today? Play games or check medicines.`
+        `নমস্কাৰ ${displayName}! আজি আপুনি কি কৰিব বিচাৰে? খেল খেলক বা ঔষধ চাওক।`,
+        `Hello ${displayName}! What would you like to do today? Play games or check medicines.`
       );
     }, 500);
     return () => clearTimeout(timer);
-  }, [patient.name]);
+  }, [displayName]);
 
   const handleTileClick = (viewId, nameAs, nameEn) => {
     soundFx.playCardFlip();
@@ -49,8 +53,8 @@ export const SimplifiedSeniorHome = ({ onNavigate, onOpenVoice }) => {
   const handleReadOrientation = () => {
     soundFx.playSingingBowl();
     speechService.speakBilingual(
-      `আজি ${todayDateStr}। আপুনি ${patient.location}ত শান্তিৰে আছে।`,
-      `Today is ${todayDateStr}. You are peacefully at home in ${patient.location}.`
+      `আজি ${todayDateStr}। আপুনি ${displayLocation}ত শান্তিৰে আছে।`,
+      `Today is ${todayDateStr}. You are peacefully at home in ${displayLocation}.`
     );
   };
 
@@ -151,10 +155,10 @@ export const SimplifiedSeniorHome = ({ onNavigate, onOpenVoice }) => {
               </span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight mt-1">
-              {patient.name}
+              {displayName}
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 font-medium">
-              {patient.regionalName} • {patient.location}
+              {displayRegionalName} • {displayLocation}
             </p>
           </div>
         </div>
