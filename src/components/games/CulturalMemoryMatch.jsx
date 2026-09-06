@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePatient } from '../../context/PatientContext.jsx';
 import { useSound } from '../../context/SoundContext.jsx';
 import { speechService } from '../../i18n/speechService.js';
@@ -184,7 +184,10 @@ export const CulturalMemoryMatch = ({ onBack, familyMode = false }) => {
       errorStreak
     });
 
-    speechService.speak(`${t.gameComplete} ${t.voicePraise1}`, language);
+    speechService.speakBilingual(
+      'বহুত ভাল হ\'ল! আপুনি সফলভাৱে খেল সমাপ্ত কৰিলে!',
+      `${t.gameComplete} ${t.voicePraise1}`
+    );
   };
 
   const handleShowHint = () => {
@@ -192,7 +195,7 @@ export const CulturalMemoryMatch = ({ onBack, familyMode = false }) => {
     // Find first unmatched pair and briefly highlight
     const unmatched = cards.find(c => !c.isMatched);
     if (unmatched) {
-      speechService.speak(`Look for ${unmatched.name}`, language);
+      speechService.speakBilingual(`বিচাৰক: ${unmatched.name}`, `Look for ${unmatched.name}`);
     }
     setTimeout(() => setHintActive(false), 2000);
   };

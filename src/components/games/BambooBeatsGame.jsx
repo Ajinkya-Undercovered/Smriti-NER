@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePatient } from '../../context/PatientContext.jsx';
 import { useSound } from '../../context/SoundContext.jsx';
 import { speechService } from '../../i18n/speechService.js';
@@ -49,7 +49,10 @@ export const BambooBeatsGame = ({ onBack }) => {
       setTimeout(() => setPulseActive(false), 400);
     }, currentTheme.tempoMs);
 
-    speechService.speak(`${currentTheme.name}. Tap the drum along with the glowing rhythm.`, language);
+    speechService.speakBilingual(
+      'বাঁহৰ ঢোলৰ তালে তালে আঙুলি বুলাওক।',
+      `${currentTheme.name}. Tap the drum along with the glowing rhythm.`
+    );
   };
 
   const handleTap = () => {
@@ -78,7 +81,10 @@ export const BambooBeatsGame = ({ onBack }) => {
           durationSec: Math.round((Date.now() - startTimeRef.current) / 1000)
         });
 
-        speechService.speak(`${t.gameComplete} ${t.voicePraise1}`, language);
+        speechService.speakBilingual(
+          'বহুত ভাল হ\'ল! আপুনি সফলভাৱে খেল সমাপ্ত কৰিলে!',
+          `${t.gameComplete} ${t.voicePraise1}`
+        );
       }
     } else {
       setFeedback('Good try! Tap right as the drum glows.');

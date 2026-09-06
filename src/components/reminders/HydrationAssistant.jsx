@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { usePatient } from '../../context/PatientContext.jsx';
 import { useSound } from '../../context/SoundContext.jsx';
 import { speechService } from '../../i18n/speechService.js';
@@ -25,9 +25,15 @@ export const HydrationAssistant = () => {
     if (waterCount + 1 >= TARGET_GLASSES) {
       playCelebration();
       confetti({ particleCount: 50, spread: 50 });
-      speechService.speak(`Excellent! You reached your daily goal of 8 glasses of water.`, language);
+      speechService.speakBilingual(
+        'বহুত ভাল! আপুনি আজি ৮ গিলাচ পানী খোৱাৰ লক্ষ্য সম্পূৰ্ণ কৰিলে!',
+        'Excellent! You reached your daily goal of 8 glasses of water.'
+      );
     } else {
-      speechService.speak(`Water logged. You have completed ${waterCount + 1} glasses today. Stay refreshed!`, language);
+      speechService.speakBilingual(
+        'পানী খোৱা লিপিবদ্ধ কৰা হ’ল। শৰীৰ সুস্থ ৰাখক!',
+        `Water logged. You have completed ${waterCount + 1} glasses today. Stay refreshed!`
+      );
     }
   };
 

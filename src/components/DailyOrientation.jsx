@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { usePatient } from '../context/PatientContext.jsx';
 import { soundFx } from '../utils/audio.js';
 import { speechService } from '../i18n/speechService.js';
@@ -40,14 +40,20 @@ export const DailyOrientation = () => {
     if (!med.taken) {
       soundFx.playSingingBowl();
       confetti({ particleCount: 40, spread: 50 });
-      speechService.speak(`${med.name} marked as taken.`, language);
+      speechService.speakBilingual(
+        'ঔষধ খোৱা সম্পূৰ্ণ হ’ল। বৰ ভাল কাম কৰিলে!',
+        `${med.name} marked as taken.`
+      );
     }
   };
 
   const handleWaterClick = () => {
     incrementWater();
     soundFx.playWaterChime();
-    speechService.speak(`Glass ${waterCount + 1} of 8 water logged. Stay refreshed!`, language);
+    speechService.speakBilingual(
+      'পানী খোৱা লিপিবদ্ধ কৰা হ’ল। শৰীৰ সুস্থ ৰাখক!',
+      `Glass ${waterCount + 1} of 8 water logged. Stay refreshed!`
+    );
   };
 
   const handleSpeakRoutine = (item) => {
@@ -75,7 +81,10 @@ export const DailyOrientation = () => {
         </div>
 
         <button
-          onClick={() => speechService.speak(`Today is ${todayDateStr}. You are in ${patient.location}.`, language)}
+          onClick={() => speechService.speakBilingual(
+            `আজি ${todayDateStr}। আপুনি শান্তিৰে নিজৰ ঘৰত আছে।`,
+            `Today is ${todayDateStr}. You are in ${patient.location}.`
+          )}
           className="self-start sm:self-auto px-4 py-2 rounded-2xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer"
         >
           <Volume2 size={16} />

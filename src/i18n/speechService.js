@@ -52,13 +52,52 @@ const PRE_RECORDED_PHRASES = [
   { match: /ঔষধ খোৱা সম্পূৰ্ণ/i, file: '/audio/voices/as_med_taken.mp3' },
   { match: /ঔষধ খাবলৈ বাকী/i, file: '/audio/voices/as_meds_remaining.mp3' },
   { match: /পানী খোৱা লিপিবদ্ধ/i, file: '/audio/voices/as_water_logged.mp3' },
+  { match: /পানী খোৱা হ’ল/i, file: '/audio/voices/as_glass_water.mp3' },
   { match: /গিলাচ পানী/i, file: '/audio/voices/as_glass_water.mp3' },
   { match: /উশাহ ভিতৰলৈ লওক/i, file: '/audio/voices/as_breathe_in.mp3' },
   { match: /উশাহ এৰি দিয়ক/i, file: '/audio/voices/as_breathe_out.mp3' },
   { match: /বাঁহৰ ঢোলৰ তালে/i, file: '/audio/voices/as_drum_rhythm.mp3' },
   { match: /কাৰ্ডখন লুটিওৱক/i, file: '/audio/voices/as_card_flip.mp3' },
   { match: /মই শুনি আছোঁ/i, file: '/audio/voices/as_listening.mp3' },
-  { match: /জৰুৰীকালীন সহায়/i, file: '/audio/voices/as_emergency_sos.mp3' }
+  { match: /জৰুৰীকালীন সহায়/i, file: '/audio/voices/as_emergency_sos.mp3' },
+  { match: /স্পষ্ট অসমীয়া ষ্টুডিঅ’ কণ্ঠ/i, file: '/audio/voices/as_voice_clarity_test.mp3' }
+];
+
+// Fallback auto-translation for components that pass English text when user is in Assamese mode!
+const ENGLISH_TO_ASSAMESE_MAP = [
+  { match: /opening cognitive games/i, as: 'মনোৰঞ্জন আৰু স্মৃতি খেলসমূহ আৰম্ভ কৰা হৈছে।' },
+  { match: /starting memory matching game/i, as: 'মনোৰঞ্জন আৰু স্মৃতি খেলসমূহ আৰম্ভ কৰা হৈছে।' },
+  { match: /here is your medication/i, as: 'আপোনাৰ ঔষধ আৰু পানীৰ সোঁৱৰণী তালিকা চাওক।' },
+  { match: /checking (your )?medication schedule/i, as: 'আপোনাৰ ঔষধৰ তালিকা পৰীক্ষা কৰা হৈছে।' },
+  { match: /remember to have a glass of fresh water/i, as: 'পানী খোৱাৰ সোঁৱৰণী। এতিয়া এগিলাচ পানী খাওক।' },
+  { match: /checking hydration.*have a glass of water/i, as: 'পানী খোৱাৰ সোঁৱৰণী। এতিয়া এগিলাচ পানী খাওক।' },
+  { match: /playing calming sounds/i, as: 'সোণালী স্মৃতি আৰু শান্ত সংগীত আৰম্ভ কৰা হৈছে।' },
+  { match: /opening calming music/i, as: 'সোণালী স্মৃতি আৰু শান্ত সংগীত আৰম্ভ কৰা হৈছে।' },
+  { match: /opening caregiver and asha/i, as: 'তত্ত্বাৱধায়ক আৰু আশা কৰ্মী পৰ্টেল খোলা হৈছে।' },
+  { match: /marked as taken/i, as: 'ঔষধ খোৱা সম্পূৰ্ণ হ’ল। বৰ ভাল কাম কৰিলে!' },
+  { match: /water logged.*completed/i, as: 'পানী খোৱা লিপিবদ্ধ কৰা হ’ল। শৰীৰ সুস্থ ৰাখক!' },
+  { match: /water logged/i, as: 'পানী খোৱা লিপিবদ্ধ কৰা হ’ল। শৰীৰ সুস্থ ৰাখক!' },
+  { match: /reached your daily goal of 8 glasses/i, as: 'বহুত ভাল! আপুনি আজি ৮ গিলাচ পানী খোৱাৰ লক্ষ্য সম্পূৰ্ণ কৰিলে!' },
+  { match: /look for (.*)/i, as: 'বিচাৰক: $1' },
+  { match: /find the matching motif:? (.*)/i, as: 'মিলা আৰ্হি বিচাৰক: $1' },
+  { match: /tap the drum along with the glowing rhythm/i, as: 'বাঁহৰ ঢোলৰ তালে তালে আঙুলি বুলাওক।' },
+  { match: /arrange your daily routine/i, as: 'ৰাতিপুৱাৰ পৰা গধূলিলৈ দৈনিক কামবোৰ ক্ৰম অনুসৰি সজাওক।' },
+  { match: /sort into the tea basket/i, as: 'চাহৰ বাস্কেটত পাতবোৰ সঠিকভাৱে বাছক।' },
+  { match: /hello (.*)! what would you like to do today\? play games or check medicines/i, as: 'নমস্কাৰ! আজি আপুনি কি কৰিব বিচাৰে? খেল খেলক বা ঔষধ চাওক।' },
+  { match: /today is (.*)\. you are peacefully at home in (.*)/i, as: 'আজি $1। আপুনি শান্তিৰে $2ত আছে।' },
+  { match: /today is (.*)\. you are in (.*)/i, as: 'আজি $1। আপুনি শান্তিৰে $2ত আছে।' },
+  { match: /good morning/i, as: 'শুভ প্ৰভাত!' },
+  { match: /good afternoon/i, as: 'শুভ অপৰাহ্ণ!' },
+  { match: /good evening/i, as: 'শুভ সন্ধ্যা!' },
+  { match: /play memory & joy games/i, as: 'মনোৰঞ্জন আৰু স্মৃতি খেলসমূহ খেলক।' },
+  { match: /my medicines & water intake/i, as: 'মোৰ ঔষধ আৰু পানীৰ সোঁৱৰণী।' },
+  { match: /talk to ai voice companion/i, as: 'AI কণ্ঠ সহায়কৰ সৈতে কথা পাতক।' },
+  { match: /calm sounds & reminiscence stories/i, as: 'সোণালী স্মৃতি আৰু শান্ত সংগীত শুনক।' },
+  { match: /doctor, asha worker & emergency/i, as: 'চিকিৎসক আৰু আশা কৰ্মীৰ সাহায্য।' },
+  { match: /my cognitive progress/i, as: 'মোৰ অগ্ৰগতি আৰু স্বাস্থ্য তথ্য।' },
+  { match: /selected (clear )?voice activated/i, as: 'স্পষ্ট কণ্ঠ নিৰ্বাচন কৰা হ’ল।' },
+  { match: /english audio guidance activated/i, as: 'ইংৰাজী অডিঅ’ সক্ৰিয় হ’ল।' },
+  { match: /dual assamese and english audio activated/i, as: 'অসমীয়া আৰু ইংৰাজী দুয়োটা ভাষাত শুনা যাব।' }
 ];
 
 class SpeechService {
@@ -128,6 +167,7 @@ class SpeechService {
     this.currentLang = mode === 'en' ? 'en' : 'as';
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('smriti_ner_audio_mode', mode);
+      localStorage.setItem('smriti_ner_language', mode === 'en' ? 'en' : 'as');
     }
   }
 
@@ -141,6 +181,10 @@ class SpeechService {
       this.audioLanguageMode = 'as';
     } else if (langCode === 'en') {
       this.audioLanguageMode = 'en';
+    }
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('smriti_ner_audio_mode', this.audioLanguageMode);
+      localStorage.setItem('smriti_ner_language', langCode);
     }
   }
 
@@ -160,6 +204,17 @@ class SpeechService {
   hasIndicCharacters(text) {
     if (!text) return false;
     return /[\u0980-\u09FF\u0900-\u097F]/.test(text);
+  }
+
+  translateEnglishToAssamese(englishText) {
+    if (!englishText) return '';
+    let t = String(englishText).trim();
+    for (const rule of ENGLISH_TO_ASSAMESE_MAP) {
+      if (rule.match.test(t)) {
+        return t.replace(rule.match, rule.as);
+      }
+    }
+    return t;
   }
 
   isIndicVoice(voice) {
@@ -316,8 +371,17 @@ class SpeechService {
     if (!text) return;
 
     this.stop();
-    const cleanedText = this.cleanTextForSpeech(text);
+    let cleanedText = this.cleanTextForSpeech(text);
     if (!cleanedText) return;
+
+    // STRICT ASSAMESE ENFORCEMENT:
+    // If the audio mode is Assamese ('as'), NEVER allow English text to pass through untreated!
+    if (this.audioLanguageMode === 'as' || lang === 'as') {
+      lang = 'as';
+      if (!this.hasIndicCharacters(cleanedText)) {
+        cleanedText = this.translateEnglishToAssamese(cleanedText);
+      }
+    }
 
     const isAssameseOrIndic = lang === 'as' || lang === 'bn' || this.hasIndicCharacters(cleanedText);
 
@@ -430,7 +494,7 @@ class SpeechService {
 
     if (mode === 'as') {
       // In Assamese mode, ALWAYS speak Assamese!
-      this.speak(assameseText || englishText, 'as', onEnd);
+      this.speak(assameseText || this.translateEnglishToAssamese(englishText), 'as', onEnd);
     } else if (mode === 'dual' && assameseText && englishText) {
       // In Dual mode, speak Assamese first, then English!
       this.speak(assameseText, 'as', () => {

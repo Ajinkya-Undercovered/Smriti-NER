@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { usePatient } from '../../context/PatientContext.jsx';
 import { useSound } from '../../context/SoundContext.jsx';
 import { speechService } from '../../i18n/speechService.js';
@@ -25,12 +25,18 @@ export const MedicineTracker = () => {
       playMedicineBell();
       playCelebration();
       confetti({ particleCount: 50, spread: 50 });
-      speechService.speak(`Medicine ${med.name} marked as taken. Well done!`, language);
+      speechService.speakBilingual(
+        'ঔষধ খোৱা সম্পূৰ্ণ হ’ল। বৰ ভাল কাম কৰিলে!',
+        `Medicine ${med.name} marked as taken. Well done!`
+      );
     }
   };
 
   const handleSpeakMed = (med) => {
-    speechService.speak(`${med.name}. Scheduled for ${med.timeString}. ${med.instructions}`, language);
+    speechService.speakBilingual(
+      `${med.name}। সময়: ${med.timeString}। ${med.instructions || 'পানীৰে সৈতে সেৱন কৰক'}`,
+      `${med.name}. Scheduled for ${med.timeString}. ${med.instructions}`
+    );
   };
 
   const getTimingIcon = (timing) => {

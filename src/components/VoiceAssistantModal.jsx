@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePatient } from '../context/PatientContext.jsx';
 import { speechService } from '../i18n/speechService.js';
 import { soundFx } from '../utils/audio.js';
@@ -46,27 +46,38 @@ export const VoiceAssistantModal = ({ isOpen, onClose }) => {
 
     if (text.includes('game') || text.includes('memory') || text.includes('play') || text.includes('খেল')) {
       setStatusMsg('Starting Memory Game...');
-      speechService.speak('Starting Memory Matching Game for you', language, () => {
-        onClose();
-      });
+      speechService.speakBilingual(
+        'মনোৰঞ্জন আৰু স্মৃতি খেলসমূহ আৰম্ভ কৰা হৈছে।',
+        'Starting Memory Matching Game for you',
+        () => { onClose(); }
+      );
     } else if (text.includes('med') || text.includes('pill') || text.includes('ঔষধ')) {
       setStatusMsg('Checking Medication Schedule...');
-      speechService.speak('Checking your medication schedule', language, () => {
-        onClose();
-      });
+      speechService.speakBilingual(
+        'আপোনাৰ ঔষধৰ সোঁৱৰণী তালিকা পৰীক্ষা কৰা হৈছে।',
+        'Checking your medication schedule',
+        () => { onClose(); }
+      );
     } else if (text.includes('water') || text.includes('drink') || text.includes('পানী') || text.includes('জল')) {
       setStatusMsg('Checking Hydration...');
-      speechService.speak('Remember to have a glass of fresh water.', language, () => {
-        onClose();
-      });
+      speechService.speakBilingual(
+        'পানী খোৱাৰ সোঁৱৰণী। এতিয়া এগিলাচ পানী খাওক।',
+        'Remember to have a glass of fresh water.',
+        () => { onClose(); }
+      );
     } else if (text.includes('music') || text.includes('calm') || text.includes('story') || text.includes('গান')) {
       setStatusMsg('Opening Calm Soundscapes...');
-      speechService.speak('Playing calming sounds and stories', language, () => {
-        onClose();
-      });
+      speechService.speakBilingual(
+        'সোণালী স্মৃতি আৰু শান্ত সংগীত আৰম্ভ কৰা হৈছে।',
+        'Playing calming sounds and stories',
+        () => { onClose(); }
+      );
     } else {
       setStatusMsg(`Heard: "${rawText}"`);
-      speechService.speak(`You said ${rawText}. How can I assist you?`, language);
+      speechService.speakBilingual(
+        `আপুনি ক’লে: ${rawText}। মই আপোনাক কিদৰে সহায় কৰিম?`,
+        `You said ${rawText}. How can I assist you?`
+      );
     }
   };
 
