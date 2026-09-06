@@ -1,5 +1,5 @@
-// Smriti-NER Progressive Web App Service Worker (Instant Sub-Second Offline Engine v6)
-const CACHE_NAME = 'smriti-ner-v6';
+// Smriti-NER Progressive Web App Service Worker (Instant Sub-Second Offline Engine v7)
+const CACHE_NAME = 'smriti-ner-v7';
 
 const CORE_SHELL_ASSETS = [
   '/',

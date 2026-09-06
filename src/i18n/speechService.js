@@ -253,6 +253,44 @@ class SpeechService {
     );
   }
 
+  isExplicitlyMaleVoice(voice) {
+    if (!voice) return false;
+    const n = (voice.name || '').toLowerCase();
+    const uri = (voice.voiceURI || '').toLowerCase();
+    const combined = `${n} ${uri}`;
+
+    // If it explicitly declares female, woman, girl, lady, it is NOT male!
+    if (/(female|woman|girl|lady|zira|sonia|jenny|aria|samantha|karen|victoria|swara|neerja|libby|mia|clara|natasha)/i.test(combined)) {
+      return false;
+    }
+
+    const malePatterns = [
+      /\b(david|mark|george|guy|male|man|boy|james|john|richard|ryan|stefan|christopher|eric|roger|tom|brian|daniel|oliver|rishi|prabhat|madhur|hemant|rahul|anand|ravi)\b/i,
+      /[-_#]male\b/i,
+      /desktop.*david/i,
+      /desktop.*mark/i
+    ];
+    return malePatterns.some(pat => pat.test(combined));
+  }
+
+  isExplicitlyFemaleVoice(voice) {
+    if (!voice) return false;
+    const n = (voice.name || '').toLowerCase();
+    const uri = (voice.voiceURI || '').toLowerCase();
+    const combined = `${n} ${uri}`;
+
+    if (this.isExplicitlyMaleVoice(voice)) return false;
+
+    const femalePatterns = [
+      /\b(female|woman|girl|lady)\b/i,
+      /\b(zira|sonia|neerja|swara|jenny|aria|libby|mia|natasha|clara|samantha|karen|victoria|moira|tessa|fiona|serena|veena|heera|aditi|anjali|priya|kalpana|sunita)\b/i,
+      /[-_#]female\b/i,
+      /desktop.*zira/i,
+      /google.*female/i
+    ];
+    return femalePatterns.some(pat => pat.test(combined));
+  }
+
   getBestVoice(lang = 'as') {
     const all = this.getAvailableVoices();
     if (all.length === 0) return null;
@@ -267,49 +305,102 @@ class SpeechService {
         'Google বাংলা',
         'Google हिन्दी',
         'Microsoft Swara Online (Natural) - Hindi (India)',
-        'Microsoft Madhur Online (Natural) - Hindi (India)',
         'Microsoft Neerja Online (Natural) - Hindi (India)',
-        'Microsoft Hemant',
         'Microsoft Kalpana',
+        'Veena',
+        'Aditi',
         'bn-IN',
         'as-IN',
         'hi-IN'
       ];
 
       for (const name of regionalPreferred) {
-        const found = all.find(v => v.name.includes(name) || v.lang === name);
+        const found = all.find(v => (v.name.includes(name) || v.lang === name) && !this.isExplicitlyMaleVoice(v));
         if (found) return found;
       }
+
+      const indicFemale = all.find(v => this.isIndicVoice(v) && this.isExplicitlyFemaleVoice(v));
+      if (indicFemale) return indicFemale;
+
+      const indicNonMale = all.find(v => this.isIndicVoice(v) && !this.isExplicitlyMaleVoice(v));
+      if (indicNonMale) return indicNonMale;
 
       const genericIndic = all.find(v => this.isIndicVoice(v));
       if (genericIndic) return genericIndic;
 
-      const indianEnglish = all.find(v => 
-        (v.lang || '').toLowerCase() === 'en-in' || 
-        (v.name || '').toLowerCase().includes('india')
+      const indianEnglishFemale = all.find(v => 
+        ((v.lang || '').toLowerCase() === 'en-in' || (v.name || '').toLowerCase().includes('india')) &&
+        !this.isExplicitlyMaleVoice(v)
       );
-      if (indianEnglish) return indianEnglish;
+      if (indianEnglishFemale) return indianEnglishFemale;
     }
 
-    // Default English preferred voices
-    const preferred = [
+    // =============================================================
+    // STRICT FEMALE / LADY VOICE PRIORITY FOR ENGLISH
+    // (Guarantees both Web App and Website always speak in a lady voice)
+    // =============================================================
+    const topFemaleEnglishVoices = [
+      // Microsoft Natural Online Female Voices (Edge / Chrome)
       'Microsoft Sonia Online (Natural) - English (India)',
-      'en-IN',
+      'Microsoft Neerja Online (Natural)',
+      'Microsoft Swara Online (Natural)',
+      'Microsoft Jenny Online (Natural) - English (United States)',
+      'Microsoft Aria Online (Natural) - English (United States)',
+      'Microsoft Libby Online (Natural) - English (United Kingdom)',
+      'Microsoft Mia Online (Natural) - English (United Kingdom)',
+      'Microsoft Natasha Online (Natural) - English (Australia)',
+      'Microsoft Clara Online (Natural) - English (Canada)',
+
+      // Windows Built-in Offline Female Voice (Installed on 100% of Windows PCs & Web Apps!)
+      'Microsoft Zira Desktop - English (United States)',
+      'Microsoft Zira',
+
+      // Google / Android / Chrome Web App Female Voices
       'Google UK English Female',
-      'Google US English',
-      'Microsoft Natural',
+      'Google US English Female',
+
+      // Apple macOS / iOS Female Voices
       'Samantha',
       'Karen',
-      'en-GB',
-      'en-US'
+      'Victoria',
+      'Veena',
+      'Moira',
+      'Tessa',
+      'Fiona',
+      'Serena'
     ];
 
-    for (const name of preferred) {
-      const found = all.find(v => v.name.includes(name) || v.lang === name);
+    // Priority 1: Match named top-tier female voices
+    for (const name of topFemaleEnglishVoices) {
+      const found = all.find(v => (v.name.includes(name) || v.voiceURI.includes(name)) && !this.isExplicitlyMaleVoice(v));
       if (found) return found;
     }
 
-    return all.find(v => v.lang.startsWith('en')) || all[0];
+    // Priority 2: Any English voice explicitly identified as Female
+    const anyEnglishFemale = all.find(v => 
+      (v.lang || '').toLowerCase().startsWith('en') && 
+      this.isExplicitlyFemaleVoice(v) && 
+      !this.isExplicitlyMaleVoice(v)
+    );
+    if (anyEnglishFemale) return anyEnglishFemale;
+
+    // Priority 3: Any English voice that is NOT Male (filters out David, Mark, George, etc.)
+    const anyEnglishNonMale = all.find(v => 
+      (v.lang || '').toLowerCase().startsWith('en') && 
+      !this.isExplicitlyMaleVoice(v)
+    );
+    if (anyEnglishNonMale) return anyEnglishNonMale;
+
+    // Priority 4: Any voice whatsoever that is explicitly Female
+    const anyFemale = all.find(v => this.isExplicitlyFemaleVoice(v) && !this.isExplicitlyMaleVoice(v));
+    if (anyFemale) return anyFemale;
+
+    // Priority 5: Any non-male voice
+    const anyNonMale = all.find(v => !this.isExplicitlyMaleVoice(v));
+    if (anyNonMale) return anyNonMale;
+
+    // Absolute fallback
+    return all.find(v => (v.lang || '').toLowerCase().startsWith('en')) || all[0];
   }
 
   stop() {
@@ -457,7 +548,8 @@ class SpeechService {
       try {
         const utterance = new SpeechSynthesisUtterance(targetText);
         utterance.rate = this.voiceSpeed;
-        utterance.pitch = 1.0;
+        // Warm, natural feminine pitch for English elderly companion voice
+        utterance.pitch = (lang === 'en' || !this.hasIndicCharacters(targetText)) ? 1.05 : 1.0;
         utterance.volume = 1.0;
 
         if (selectedVoice) {

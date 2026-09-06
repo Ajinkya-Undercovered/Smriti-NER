@@ -98,6 +98,14 @@ export const DrawerMenu = ({
     );
   };
 
+  const handleTestEnglishVoice = () => {
+    soundFx.playSingingBowl();
+    speechService.speak(
+      'Hello! This is Smriti-NER, your personal memory and cognitive companion. Wishing you a peaceful and cheerful day.',
+      'en'
+    );
+  };
+
   const handleLogout = () => {
     logout();
     onClose();
@@ -143,7 +151,7 @@ export const DrawerMenu = ({
           )}
 
           {/* 1. Voice Fluency & Clarity Test */}
-          <div className="bg-rose-50/80 border-2 border-rose-200 rounded-2xl p-3.5 space-y-2">
+          <div className="bg-rose-50/80 border-2 border-rose-200 rounded-2xl p-3.5 space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black text-rose-900 flex items-center gap-1.5">
                 <Volume2 size={15} className="text-rose-600" />
@@ -153,13 +161,22 @@ export const DrawerMenu = ({
                 Crystal Clear
               </span>
             </div>
-            <button
-              onClick={handleTestVoiceClarity}
-              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 text-white font-black text-xs flex items-center justify-center gap-2 shadow-xs cursor-pointer"
-            >
-              <Play size={14} />
-              <span>Test Native Assamese Voice (স্পষ্ট কণ্ঠ শুনক)</span>
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={handleTestVoiceClarity}
+                className="py-2.5 px-2 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 text-white font-black text-[11px] flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+              >
+                <Play size={13} />
+                <span>অসমীয়া (Studio)</span>
+              </button>
+              <button
+                onClick={handleTestEnglishVoice}
+                className="py-2.5 px-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-700 hover:from-teal-700 text-white font-black text-[11px] flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+              >
+                <Play size={13} />
+                <span>English (👩 Lady)</span>
+              </button>
+            </div>
           </div>
 
           {/* 2. Voice Pack Selector */}
@@ -245,12 +262,17 @@ export const DrawerMenu = ({
                 onChange={(e) => handleBrowserVoiceChange(e.target.value)}
                 className="w-full p-2 rounded-xl border border-slate-300 bg-slate-50 font-bold text-xs text-slate-800 cursor-pointer"
               >
-                <option value="">✨ Auto-Select Best Voice</option>
-                {browserVoices.map(v => (
-                  <option key={v.voiceURI} value={v.voiceURI}>
-                    {v.name} ({v.lang})
-                  </option>
-                ))}
+                <option value="">✨ Auto-Select Best Lady Voice (মহিলা কণ্ঠ)</option>
+                {browserVoices.map(v => {
+                  const isFemale = speechService.isExplicitlyFemaleVoice(v);
+                  const isMale = speechService.isExplicitlyMaleVoice(v);
+                  const prefix = isFemale ? '👩 [Lady] ' : (isMale ? '👨 ' : '🎙️ ');
+                  return (
+                    <option key={v.voiceURI} value={v.voiceURI}>
+                      {prefix}{v.name} ({v.lang})
+                    </option>
+                  );
+                })}
               </select>
             </div>
           )}
