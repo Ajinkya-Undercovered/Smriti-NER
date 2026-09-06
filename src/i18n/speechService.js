@@ -1,15 +1,78 @@
 // Ultra-Fluent Natural Multilingual Speech Synthesis Engine
+// Supports Multiple Voice Packs:
+// 1. Studio Native Assamese (🌸 অসমীয়া স্পষ্ট কণ্ঠ — Pre-recorded Studio Audio + Neural Indic Stream)
+// 2. ElevenLabs Multilingual v2 (🎙️ ElevenLabs AI Studio)
+// 3. System Speech Synthesis (💻 Device On-Board Voices)
+
 import { transliterateAssameseToPhonetic } from './assamesePhonetics.js';
+import { elevenLabsService } from '../ai/elevenLabsService.js';
+
+export const VOICE_PACKS = [
+  {
+    id: 'studio_as',
+    name: '🌸 Studio Native Assamese (স্পষ্ট অসমীয়া কণ্ঠ)',
+    description: 'Crystal-clear native Eastern Nagari pronunciation with instant offline studio soundbank.',
+    isRecommended: true,
+    tag: 'Recommended'
+  },
+  {
+    id: 'elevenlabs',
+    name: '🎙️ ElevenLabs AI Studio (বহুভাষিক AI)',
+    description: 'High-emotion neural voice powered by ElevenLabs Multilingual v2 model.',
+    isRecommended: false,
+    tag: 'Requires API Key'
+  },
+  {
+    id: 'system',
+    name: '💻 System Device Speech (ব্ৰাউজাৰ কণ্ঠ)',
+    description: 'On-device speech synthesis using Windows, Android or Mac installed voices.',
+    isRecommended: false,
+    tag: 'Offline Standard'
+  }
+];
+
+// Pre-recorded studio audio assets for instant zero-latency, 100% authentic Assamese pronunciation
+const PRE_RECORDED_PHRASES = [
+  { match: /মাতৃভাষা অসমীয়াত ধ্বনি সক্ৰিয় হ’ল/i, file: '/audio/voices/as_toggle_activated.mp3' },
+  { match: /অসমীয়া আৰু ইংৰাজী দুয়োটা/i, file: '/audio/voices/dual_toggle_activated.mp3' },
+  { match: /English audio guidance activated/i, file: '/audio/voices/en_toggle_activated.mp3' },
+  { match: /নমস্কাৰ.*কি কৰিব বিচাৰে/i, file: '/audio/voices/as_home_greeting.mp3' },
+  { match: /নমস্কাৰ আইতা/i, file: '/audio/voices/as_welcome_aita.mp3' },
+  { match: /নমস্কাৰ ককা/i, file: '/audio/voices/as_welcome_koka.mp3' },
+  { match: /মনোৰঞ্জন আৰু স্মৃতি খেল/i, file: '/audio/voices/as_games_tile.mp3' },
+  { match: /মোৰ ঔষধ আৰু পানী/i, file: '/audio/voices/as_meds_tile.mp3' },
+  { match: /AI কণ্ঠ সহায়ক/i, file: '/audio/voices/as_voice_tile.mp3' },
+  { match: /সোণালী স্মৃতি/i, file: '/audio/voices/as_calm_tile.mp3' },
+  { match: /চিকিৎসক আৰু আশা/i, file: '/audio/voices/as_doctor_tile.mp3' },
+  { match: /মোৰ অগ্ৰগতি/i, file: '/audio/voices/as_progress_tile.mp3' },
+  { match: /শান্তিৰে.*আছে/i, file: '/audio/voices/as_orientation.mp3' },
+  { match: /সঠিক উত্তৰ পালে/i, file: '/audio/voices/as_game_match.mp3' },
+  { match: /সফলভাৱে.*সমাপ্ত কৰিলে/i, file: '/audio/voices/as_game_win.mp3' },
+  { match: /স্পষ্ট.*কণ্ঠ সহায়ক/i, file: '/audio/voices/as_voice_clarity_test.mp3' },
+  { match: /ঔষধ খোৱা সম্পূৰ্ণ/i, file: '/audio/voices/as_med_taken.mp3' },
+  { match: /ঔষধ খাবলৈ বাকী/i, file: '/audio/voices/as_meds_remaining.mp3' },
+  { match: /পানী খোৱা লিপিবদ্ধ/i, file: '/audio/voices/as_water_logged.mp3' },
+  { match: /গিলাচ পানী/i, file: '/audio/voices/as_glass_water.mp3' },
+  { match: /উশাহ ভিতৰলৈ লওক/i, file: '/audio/voices/as_breathe_in.mp3' },
+  { match: /উশাহ এৰি দিয়ক/i, file: '/audio/voices/as_breathe_out.mp3' },
+  { match: /বাঁহৰ ঢোলৰ তালে/i, file: '/audio/voices/as_drum_rhythm.mp3' },
+  { match: /কাৰ্ডখন লুটিওৱক/i, file: '/audio/voices/as_card_flip.mp3' },
+  { match: /মই শুনি আছোঁ/i, file: '/audio/voices/as_listening.mp3' },
+  { match: /জৰুৰীকালীন সহায়/i, file: '/audio/voices/as_emergency_sos.mp3' }
+];
 
 class SpeechService {
   constructor() {
     this.synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
     this.audioLanguageMode = (typeof localStorage !== 'undefined' && localStorage.getItem('smriti_ner_audio_mode')) || 'as';
-    this.currentLang = 'as';
+    this.currentLang = this.audioLanguageMode === 'en' ? 'en' : 'as';
+    this.voicePack = (typeof localStorage !== 'undefined' && localStorage.getItem('smriti_ner_voice_pack')) || 'studio_as';
     this.voiceSpeed = 0.88; // Gentle, clear elderly-friendly pace
     this.selectedVoiceURI = (typeof localStorage !== 'undefined' && localStorage.getItem('smriti_ner_browser_voice')) || '';
     this.voices = [];
     this.activeUtterance = null;
+    this.currentAudio = null;
+    this.audioCache = new Map();
     this.recognition = null;
 
     if (this.synth) {
@@ -32,6 +95,21 @@ class SpeechService {
       this.loadVoices();
     }
     return this.voices || [];
+  }
+
+  getVoicePack() {
+    return this.voicePack;
+  }
+
+  setVoicePack(packId) {
+    this.voicePack = packId;
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('smriti_ner_voice_pack', packId);
+    }
+  }
+
+  getVoicePacksList() {
+    return VOICE_PACKS;
   }
 
   setSelectedVoiceURI(uri) {
@@ -59,6 +137,11 @@ class SpeechService {
 
   setLanguage(langCode) {
     this.currentLang = langCode;
+    if (langCode === 'as' || langCode === 'bn') {
+      this.audioLanguageMode = 'as';
+    } else if (langCode === 'en') {
+      this.audioLanguageMode = 'en';
+    }
   }
 
   setVoiceSpeed(speed) {
@@ -69,7 +152,7 @@ class SpeechService {
     if (!text) return '';
     return String(text)
       .replace(/\(.*?\)/g, ' ') // Remove parenthetical notes
-      .replace(/[•★✓➔🌿💊💧🩺🌸🎮👁️🍃⏳🥁👘🎵🕊️🪈🔔🌊🔴🟢🔵🟡👴👵👩‍⚕️📋]/g, ' ')
+      .replace(/[•★✓➔🌿💊💧🩺🌸🎮👁️🍃⏳🥁👘🎵🕊️🪈🔔🌊🔴🟢🔵🟡👴👵👩‍⚕️📋✨]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
   }
@@ -131,7 +214,6 @@ class SpeechService {
       const genericIndic = all.find(v => this.isIndicVoice(v));
       if (genericIndic) return genericIndic;
 
-      // If no native Indic voice, prefer Indian English voice which understands Indian phonetics!
       const indianEnglish = all.find(v => 
         (v.lang || '').toLowerCase() === 'en-in' || 
         (v.name || '').toLowerCase().includes('india')
@@ -160,27 +242,144 @@ class SpeechService {
     return all.find(v => v.lang.startsWith('en')) || all[0];
   }
 
-  async speak(text, lang = this.currentLang, onEnd = null) {
-    if (!text || !this.synth) return;
+  stop() {
+    // 1. Stop any playing HTML5 Audio element
+    if (this.currentAudio) {
+      try {
+        this.currentAudio.pause();
+        this.currentAudio.currentTime = 0;
+      } catch (e) {}
+      this.currentAudio = null;
+    }
 
-    // Wake up synth if paused in Chromium/Edge
+    // 2. Stop browser speech synthesis
+    if (this.synth) {
+      this.synth.cancel();
+      this.activeUtterance = null;
+    }
+  }
+
+  /**
+   * Find matching pre-recorded studio audio file
+   */
+  findPreRecordedAudio(text) {
+    if (!text) return null;
+    for (const item of PRE_RECORDED_PHRASES) {
+      if (item.match.test(text)) {
+        return item.file;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Plays an audio file via HTML5 Audio
+   */
+  playAudioUrl(url, onEnd, onError) {
+    this.stop();
+
+    try {
+      const audio = new Audio(url);
+      audio.playbackRate = this.voiceSpeed;
+      this.currentAudio = audio;
+
+      audio.onended = () => {
+        this.currentAudio = null;
+        if (onEnd) onEnd();
+      };
+
+      audio.onerror = (e) => {
+        console.warn('Audio playback failed for', url, e);
+        this.currentAudio = null;
+        if (onError) onError(e);
+      };
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn('Audio play promise rejected', err);
+          if (onError) onError(err);
+        });
+      }
+      return true;
+    } catch (err) {
+      console.warn('Could not initialize Audio', err);
+      if (onError) onError(err);
+      return false;
+    }
+  }
+
+  /**
+   * Unified Speak Method
+   */
+  async speak(text, lang = this.currentLang, onEnd = null) {
+    if (!text) return;
+
+    this.stop();
+    const cleanedText = this.cleanTextForSpeech(text);
+    if (!cleanedText) return;
+
+    const isAssameseOrIndic = lang === 'as' || lang === 'bn' || this.hasIndicCharacters(cleanedText);
+
+    // -------------------------------------------------------------
+    // ENGINE 1: Check Pre-recorded Studio Audio Pack (Instant & Offline)
+    // -------------------------------------------------------------
+    const preRecorded = this.findPreRecordedAudio(cleanedText);
+    if (preRecorded) {
+      this.playAudioUrl(preRecorded, onEnd, () => {
+        // Fallback if local audio fails to load
+        this.speakViaSystemSynth(cleanedText, lang, onEnd);
+      });
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // ENGINE 2: ElevenLabs Multilingual Studio Pack
+    // -------------------------------------------------------------
+    if (this.voicePack === 'elevenlabs' && elevenLabsService.hasApiKey()) {
+      try {
+        const spoken = await elevenLabsService.speakEmpathetic(cleanedText, { onEnd });
+        if (spoken) return;
+      } catch (e) {
+        console.warn('ElevenLabs failed, falling back to neural Indic audio', e);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // ENGINE 3: Studio Indic Neural Audio (Google/Indic Neural Stream)
+    // -------------------------------------------------------------
+    if (this.voicePack === 'studio_as' && isAssameseOrIndic && typeof navigator !== 'undefined' && navigator.onLine) {
+      // Use Eastern Nagari neural pronunciation
+      const streamUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=bn&client=tw-ob&q=${encodeURIComponent(cleanedText)}`;
+      
+      const success = this.playAudioUrl(streamUrl, onEnd, () => {
+        // If offline or blocked, fallback to system synthesis
+        this.speakViaSystemSynth(cleanedText, lang, onEnd);
+      });
+      if (success) return;
+    }
+
+    // -------------------------------------------------------------
+    // ENGINE 4: Fallback to System Device Speech Synthesis
+    // -------------------------------------------------------------
+    this.speakViaSystemSynth(cleanedText, lang, onEnd);
+  }
+
+  speakViaSystemSynth(cleanedText, lang, onEnd = null) {
+    if (!this.synth) {
+      if (onEnd) onEnd();
+      return;
+    }
+
     if (this.synth.paused) {
       this.synth.resume();
     }
-    if (this.synth.speaking || this.synth.pending) {
-      this.synth.cancel();
-    }
-
-    const cleanedText = this.cleanTextForSpeech(text);
-    if (!cleanedText) return;
+    this.synth.cancel();
 
     let selectedVoice = this.getBestVoice(lang);
     let targetText = cleanedText;
     let targetLang = lang === 'as' ? 'bn-IN' : (lang === 'hi' ? 'hi-IN' : 'en-US');
 
-    // Assamese Handling:
-    // 1. If we have a native Indic voice (as, bn, hi), speak native script.
-    // 2. If the only available voices are English, transliterate to phonetic Assamese so the voice speaks Assamese words!
     if (lang === 'as' || this.hasIndicCharacters(cleanedText)) {
       if (selectedVoice && this.isIndicVoice(selectedVoice)) {
         targetText = cleanedText;
@@ -217,9 +416,7 @@ class SpeechService {
           if (onEnd) onEnd();
         };
 
-        // Pin to instance to prevent V8 garbage collection
         this.activeUtterance = utterance;
-
         this.synth.speak(utterance);
       } catch (err) {
         console.warn('Synthesis invocation failed', err);
@@ -239,18 +436,11 @@ class SpeechService {
       this.speak(assameseText, 'as', () => {
         setTimeout(() => {
           this.speak(englishText, 'en', onEnd);
-        }, 350);
+        }, 400);
       });
     } else {
       // In English mode
       this.speak(englishText || assameseText, 'en', onEnd);
-    }
-  }
-
-  stop() {
-    if (this.synth) {
-      this.synth.cancel();
-      this.activeUtterance = null;
     }
   }
 
@@ -261,7 +451,7 @@ class SpeechService {
       this.recognition = new SpeechRecognition();
       this.recognition.continuous = false;
       this.recognition.interimResults = false;
-      this.recognition.lang = 'en-IN';
+      this.recognition.lang = 'bn-IN';
     }
   }
 
