@@ -1,6 +1,6 @@
 // Ultra-Fluent Natural Multilingual Speech Synthesis Engine
 // Supports Multiple Voice Packs:
-// 1. Studio Native Assamese (🌸 অসমীয়া স্পষ্ট কণ্ঠ — Pre-recorded Studio Audio + Neural Indic Stream)
+// 1. Studio Native Assamese (🌸 অসমীয়া স্পষ্ট কণ্ঠ — Pre-recorded Studio Audio Soundbank)
 // 2. ElevenLabs Multilingual v2 (🎙️ ElevenLabs AI Studio)
 // 3. System Speech Synthesis (💻 Device On-Board Voices)
 
@@ -36,19 +36,33 @@ const PRE_RECORDED_PHRASES = [
   { match: /মাতৃভাষা অসমীয়াত ধ্বনি সক্ৰিয় হ’ল/i, file: '/audio/voices/as_toggle_activated.mp3' },
   { match: /অসমীয়া আৰু ইংৰাজী দুয়োটা/i, file: '/audio/voices/dual_toggle_activated.mp3' },
   { match: /English audio guidance activated/i, file: '/audio/voices/en_toggle_activated.mp3' },
+  
+  // Games & Descriptions
+  { match: /স্মৃতি মেলা/i, file: '/audio/voices/as_game1.mp3' },
+  { match: /চাহ বাগিচা/i, file: '/audio/voices/as_game2.mp3' },
+  { match: /সময়ক্ৰম/i, file: '/audio/voices/as_game3.mp3' },
+  { match: /বিহু ঢোল/i, file: '/audio/voices/as_game4.mp3' },
+  { match: /জনজাতীয় বস্ত্ৰ/i, file: '/audio/voices/as_game5.mp3' },
+  { match: /মনোৰঞ্জন আৰু স্মৃতি খেল/i, file: '/audio/voices/as_games_tile.mp3' },
+  { match: /খেল আৰম্ভ/i, file: '/audio/voices/as_start_game.mp3' },
+  { match: /বৰ ধুনীয়া কাম/i, file: '/audio/voices/as_praise_good.mp3' },
+  { match: /খুব ভাল হৈছে/i, file: '/audio/voices/as_praise_well.mp3' },
+  { match: /একো চিন্তা নকৰিব/i, file: '/audio/voices/as_praise_calm.mp3' },
+  { match: /সঠিক উত্তৰ/i, file: '/audio/voices/as_match_found.mp3' },
+  { match: /সফলভাৱে.*সমাপ্ত/i, file: '/audio/voices/as_game_complete.mp3' },
+
+  // Home Hub & Senior Tiles
   { match: /নমস্কাৰ.*কি কৰিব বিচাৰে/i, file: '/audio/voices/as_home_greeting.mp3' },
   { match: /নমস্কাৰ আইতা/i, file: '/audio/voices/as_welcome_aita.mp3' },
   { match: /নমস্কাৰ ককা/i, file: '/audio/voices/as_welcome_koka.mp3' },
-  { match: /মনোৰঞ্জন আৰু স্মৃতি খেল/i, file: '/audio/voices/as_games_tile.mp3' },
   { match: /মোৰ ঔষধ আৰু পানী/i, file: '/audio/voices/as_meds_tile.mp3' },
   { match: /AI কণ্ঠ সহায়ক/i, file: '/audio/voices/as_voice_tile.mp3' },
   { match: /সোণালী স্মৃতি/i, file: '/audio/voices/as_calm_tile.mp3' },
   { match: /চিকিৎসক আৰু আশা/i, file: '/audio/voices/as_doctor_tile.mp3' },
   { match: /মোৰ অগ্ৰগতি/i, file: '/audio/voices/as_progress_tile.mp3' },
   { match: /শান্তিৰে.*আছে/i, file: '/audio/voices/as_orientation.mp3' },
-  { match: /সঠিক উত্তৰ পালে/i, file: '/audio/voices/as_game_match.mp3' },
-  { match: /সফলভাৱে.*সমাপ্ত কৰিলে/i, file: '/audio/voices/as_game_win.mp3' },
-  { match: /স্পষ্ট.*কণ্ঠ সহায়ক/i, file: '/audio/voices/as_voice_clarity_test.mp3' },
+
+  // Reminders & Routine
   { match: /ঔষধ খোৱা সম্পূৰ্ণ/i, file: '/audio/voices/as_med_taken.mp3' },
   { match: /ঔষধ খাবলৈ বাকী/i, file: '/audio/voices/as_meds_remaining.mp3' },
   { match: /পানী খোৱা লিপিবদ্ধ/i, file: '/audio/voices/as_water_logged.mp3' },
@@ -60,13 +74,14 @@ const PRE_RECORDED_PHRASES = [
   { match: /কাৰ্ডখন লুটিওৱক/i, file: '/audio/voices/as_card_flip.mp3' },
   { match: /মই শুনি আছোঁ/i, file: '/audio/voices/as_listening.mp3' },
   { match: /জৰুৰীকালীন সহায়/i, file: '/audio/voices/as_emergency_sos.mp3' },
+  { match: /স্পষ্ট.*কণ্ঠ সহায়ক/i, file: '/audio/voices/as_voice_clarity_test.mp3' },
   { match: /স্পষ্ট অসমীয়া ষ্টুডিঅ’ কণ্ঠ/i, file: '/audio/voices/as_voice_clarity_test.mp3' }
 ];
 
 // Fallback auto-translation for components that pass English text when user is in Assamese mode!
 const ENGLISH_TO_ASSAMESE_MAP = [
   { match: /opening cognitive games/i, as: 'মনোৰঞ্জন আৰু স্মৃতি খেলসমূহ আৰম্ভ কৰা হৈছে।' },
-  { match: /starting memory matching game/i, as: 'মনোৰঞ্জন আৰু স্মৃতি খেলসমূহ আৰম্ভ কৰা হৈছে।' },
+  { match: /starting memory matching game/i, as: 'স্মৃতি মেলা খেল আৰম্ভ কৰা হৈছে।' },
   { match: /here is your medication/i, as: 'আপোনাৰ ঔষধ আৰু পানীৰ সোঁৱৰণী তালিকা চাওক।' },
   { match: /checking (your )?medication schedule/i, as: 'আপোনাৰ ঔষধৰ তালিকা পৰীক্ষা কৰা হৈছে।' },
   { match: /remember to have a glass of fresh water/i, as: 'পানী খোৱাৰ সোঁৱৰণী। এতিয়া এগিলাচ পানী খাওক।' },
@@ -298,7 +313,6 @@ class SpeechService {
   }
 
   stop() {
-    // 1. Stop any playing HTML5 Audio element
     if (this.currentAudio) {
       try {
         this.currentAudio.pause();
@@ -307,7 +321,6 @@ class SpeechService {
       this.currentAudio = null;
     }
 
-    // 2. Stop browser speech synthesis
     if (this.synth) {
       this.synth.cancel();
       this.activeUtterance = null;
@@ -383,15 +396,12 @@ class SpeechService {
       }
     }
 
-    const isAssameseOrIndic = lang === 'as' || lang === 'bn' || this.hasIndicCharacters(cleanedText);
-
     // -------------------------------------------------------------
     // ENGINE 1: Check Pre-recorded Studio Audio Pack (Instant & Offline)
     // -------------------------------------------------------------
     const preRecorded = this.findPreRecordedAudio(cleanedText);
     if (preRecorded) {
       this.playAudioUrl(preRecorded, onEnd, () => {
-        // Fallback if local audio fails to load
         this.speakViaSystemSynth(cleanedText, lang, onEnd);
       });
       return;
@@ -405,26 +415,12 @@ class SpeechService {
         const spoken = await elevenLabsService.speakEmpathetic(cleanedText, { onEnd });
         if (spoken) return;
       } catch (e) {
-        console.warn('ElevenLabs failed, falling back to neural Indic audio', e);
+        console.warn('ElevenLabs failed, falling back to system speech', e);
       }
     }
 
     // -------------------------------------------------------------
-    // ENGINE 3: Studio Indic Neural Audio (Google/Indic Neural Stream)
-    // -------------------------------------------------------------
-    if (this.voicePack === 'studio_as' && isAssameseOrIndic && typeof navigator !== 'undefined' && navigator.onLine) {
-      // Use Eastern Nagari neural pronunciation
-      const streamUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=bn&client=tw-ob&q=${encodeURIComponent(cleanedText)}`;
-      
-      const success = this.playAudioUrl(streamUrl, onEnd, () => {
-        // If offline or blocked, fallback to system synthesis
-        this.speakViaSystemSynth(cleanedText, lang, onEnd);
-      });
-      if (success) return;
-    }
-
-    // -------------------------------------------------------------
-    // ENGINE 4: Fallback to System Device Speech Synthesis
+    // ENGINE 3: Fallback to System Device Speech Synthesis
     // -------------------------------------------------------------
     this.speakViaSystemSynth(cleanedText, lang, onEnd);
   }
