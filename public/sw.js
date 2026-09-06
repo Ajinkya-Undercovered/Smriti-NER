@@ -1,5 +1,5 @@
-﻿// Smriti-NER Progressive Web App Service Worker (Instant Sub-Second Offline Engine v5)
-const CACHE_NAME = 'smriti-ner-v5';
+// Smriti-NER Progressive Web App Service Worker (Instant Sub-Second Offline Engine v6)
+const CACHE_NAME = 'smriti-ner-v6';
 
 const CORE_SHELL_ASSETS = [
   '/',
@@ -8,7 +8,12 @@ const CORE_SHELL_ASSETS = [
   '/favicon.svg',
   '/icons.svg',
   '/icon-192.png',
-  '/icon-512.png'
+  '/icon-512.png',
+  '/audio/voices/as_toggle_activated.mp3',
+  '/audio/voices/as_home_greeting.mp3',
+  '/audio/voices/as_games_tile.mp3',
+  '/audio/voices/as_meds_tile.mp3',
+  '/audio/voices/as_voice_clarity_test.mp3'
 ];
 
 // 1. Install Event: Pre-cache static application shell individually
